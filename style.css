@@ -1,0 +1,1606 @@
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #f0f2f0;
+  --bg-2:       #e8ece6;
+  --bg-3:       #dde3d8;
+  --bg-card:    #ffffff;
+  --border:     #ccd5c8;
+  --border-2:   #b4c4ae;
+  --is:         #3a7a4a;
+  --is-dim:     #2d6038;
+  --is-lys:     #e8f3eb;
+  --grønn:      #4a8c5a;
+  --grønn-dim:  #357045;
+  --vann:       #2c6e8a;
+  --vann-lys:   #3a8aaa;
+  --vann-bg:    #e6f3f8;
+  --gull:       #b87a10;
+  --solv:       #7a8898;
+  --bronse:     #8a5418;
+  --hvit:       #ffffff;
+  --tekst:      #2a3428;
+  --tekst-dim:  #6a8068;
+  --mork:       #1e2e1a;
+  --radius:     10px;
+  --radius-sm:  6px;
+  --skygge:     0 2px 12px rgba(0,0,0,0.08);
+  --skygge-md:  0 4px 24px rgba(0,0,0,0.12);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--tekst);
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+
+/* ===== NAV ===== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(240,242,238,0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--is);
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.3px;
+}
+
+.nav-logo .logo-icon { font-size: 1.3rem; }
+
+.nav-links { display: flex; gap: 0.1rem; list-style: none; }
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--tekst-dim);
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.18s;
+}
+
+.nav-links a:hover {
+  color: var(--is);
+  background: var(--is-lys);
+}
+
+/* ===== HERO ===== */
+#hero {
+  min-height: 100vh;
+  padding-top: 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  background: linear-gradient(140deg, #c4d4be 0%, #cfdac8 40%, #beccba 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-left {
+  padding: 4rem 3rem 4rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-right {
+  height: 100vh;
+  position: relative;
+}
+
+#mountain-container {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.45);
+  border: 1px solid rgba(58,122,74,0.25);
+  color: var(--is-dim);
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
+}
+
+.hero-title {
+  font-size: clamp(2.6rem, 4.5vw, 4.2rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1.0;
+  margin-bottom: 1.25rem;
+  color: var(--mork);
+}
+
+.hero-title span {
+  color: var(--is);
+  display: block;
+}
+
+.hero-subtitle {
+  font-size: 1rem;
+  color: #4a6050;
+  margin-bottom: 2.5rem;
+  max-width: 420px;
+  line-height: 1.7;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2.5rem;
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(58,122,74,0.2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.hero-stat {
+  text-align: center;
+  padding: 1rem 1.75rem;
+  border-right: 1px solid rgba(58,122,74,0.15);
+}
+
+.hero-stat:last-child { border-right: none; }
+
+.hero-stat .number {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--is);
+  display: block;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.hero-stat .label {
+  font-size: 0.7rem;
+  color: var(--tekst-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 3px;
+  display: block;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+  background: var(--is);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(58,122,74,0.3);
+}
+
+.btn-primary:hover {
+  background: var(--is-dim);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(58,122,74,0.35);
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.6);
+  color: var(--tekst);
+  border: 1px solid var(--border-2);
+}
+
+.btn-secondary:hover {
+  border-color: var(--is);
+  color: var(--is);
+  background: var(--is-lys);
+}
+
+.btn-vann {
+  background: var(--vann);
+  color: var(--hvit);
+  box-shadow: 0 2px 10px rgba(44,110,138,0.25);
+}
+
+.btn-vann:hover {
+  background: #245c74;
+  transform: translateY(-1px);
+}
+
+/* ===== SECTIONS ===== */
+section { padding: 5rem 2rem; }
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+.section-header { text-align: center; margin-bottom: 3rem; }
+
+.section-tag {
+  display: inline-block;
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.2);
+  color: var(--is);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 50px;
+  margin-bottom: 0.9rem;
+}
+
+.section-tag.vann-tag {
+  background: var(--vann-bg);
+  border-color: rgba(44,110,138,0.2);
+  color: var(--vann);
+}
+
+.section-title {
+  font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+  font-weight: 800;
+  color: var(--mork);
+  letter-spacing: -0.6px;
+  margin-bottom: 0.5rem;
+}
+
+.section-desc { color: var(--tekst-dim); font-size: 0.95rem; }
+
+/* ===== KART ===== */
+#kart { background: var(--bg-2); }
+
+.kart-filter {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.kart-filter-btn {
+  padding: 7px 16px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--tekst-dim);
+  transition: all 0.18s;
+  opacity: 0.55;
+}
+
+.kart-filter-btn.aktiv {
+  opacity: 1;
+  border-color: var(--border-2);
+  color: var(--tekst);
+  background: var(--bg-2);
+}
+
+.kart-wrapper {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--skygge-md);
+}
+
+#map { height: 560px; width: 100%; }
+
+.kart-legend {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  color: var(--tekst-dim);
+}
+
+.legend-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+}
+
+.legend-dot.fjell { background: var(--grønn); }
+.legend-dot.vann  { background: var(--vann-lys); }
+
+/* ===== FJELL LISTE ===== */
+#fjell-liste { background: var(--bg); }
+
+.filter-bar { display: flex; gap: 1rem; margin-bottom: 2rem; }
+
+.filter-bar input {
+  flex: 1;
+  padding: 10px 15px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--tekst);
+  transition: border-color 0.18s;
+}
+
+.filter-bar input::placeholder { color: var(--tekst-dim); }
+
+.filter-bar input:focus {
+  outline: none;
+  border-color: var(--is);
+  box-shadow: 0 0 0 3px rgba(58,122,74,0.1);
+}
+
+.fjell-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.1rem;
+}
+
+.fjell-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fjell-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--skygge-md);
+}
+
+.fjell-card-img {
+  height: 140px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, #2a3c28 0%, #3a5034 100%);
+}
+
+.fjell-card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.fjell-card-img .placeholder-img {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  background: linear-gradient(145deg, #2e3e2c 0%, #3c5038 60%, #2a3c2a 100%);
+}
+
+.hoyde-badge {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(20,30,20,0.75);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #d4e8c8;
+  padding: 2px 9px;
+  border-radius: 50px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.rank-badge {
+  position: absolute;
+  top: 8px; left: 8px;
+  background: var(--gull);
+  color: #fff;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.rank-badge.rank-2 { background: var(--solv); }
+.rank-badge.rank-3 { background: var(--bronse); }
+.rank-badge.rank-other { background: rgba(20,30,20,0.7); color: #aaa; border: 1px solid rgba(255,255,255,0.1); box-shadow: none; }
+
+.besøkt-overlay {
+  position: absolute; inset: 0;
+  background: rgba(58,122,74,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+}
+
+.fjell-card-body { padding: 1rem 1.1rem 1.1rem; }
+
+.fjell-navn {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--mork);
+  margin-bottom: 0.25rem;
+}
+
+.fjell-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: var(--tekst-dim);
+  margin-bottom: 0.5rem;
+}
+
+.fjell-desc {
+  font-size: 0.83rem;
+  color: var(--tekst-dim);
+  line-height: 1.55;
+  margin-bottom: 0.9rem;
+}
+
+.fjell-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poeng-chip {
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.2);
+  color: var(--is);
+  padding: 3px 9px;
+  border-radius: 50px;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.poeng-chip.vann-poeng {
+  background: var(--vann-bg);
+  border-color: rgba(44,110,138,0.2);
+  color: var(--vann);
+}
+
+.btn-sm {
+  padding: 6px 13px;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  border: 1px solid var(--border-2);
+  cursor: pointer;
+  transition: all 0.18s;
+  background: var(--is-lys);
+  color: var(--is);
+}
+
+.btn-sm:hover {
+  background: var(--is);
+  color: #fff;
+  border-color: var(--is);
+}
+
+.btn-sm.besøkt {
+  background: var(--bg-2);
+  border-color: var(--border);
+  color: var(--tekst-dim);
+  cursor: default;
+}
+
+.btn-sm.vann-btn {
+  background: var(--vann-bg);
+  border-color: rgba(44,110,138,0.25);
+  color: var(--vann);
+}
+
+.btn-sm.vann-btn:hover {
+  background: var(--vann);
+  color: #fff;
+  border-color: var(--vann);
+}
+
+.btn-sm.badet {
+  background: var(--bg-2);
+  border-color: var(--border);
+  color: var(--tekst-dim);
+  cursor: default;
+}
+
+/* ===== VANN LISTE ===== */
+#vann-liste { background: var(--bg-2); }
+
+.vann-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.vann-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--vann-lys);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.vann-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--skygge-md);
+}
+
+.vann-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+
+.vann-navn {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--vann);
+  margin-bottom: 0.2rem;
+}
+
+.vann-meta { font-size: 0.78rem; color: var(--tekst-dim); margin-bottom: 0.45rem; }
+
+.vann-desc { font-size: 0.82rem; color: var(--tekst-dim); line-height: 1.5; margin-bottom: 0.9rem; }
+
+.badet-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--vann-bg);
+  border: 1px solid rgba(44,110,138,0.25);
+  color: var(--vann);
+  padding: 3px 9px;
+  border-radius: 50px;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+/* ===== REGISTRER ===== */
+#registrer { background: var(--bg-3); }
+
+.reg-tabs { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+
+.reg-tab {
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--tekst-dim);
+  transition: all 0.18s;
+}
+
+.reg-tab.aktiv {
+  background: var(--is);
+  border-color: var(--is);
+  color: #fff;
+}
+
+.reg-tab:not(.aktiv):hover { border-color: var(--is); color: var(--is); background: var(--is-lys); }
+
+.reg-form-wrapper { max-width: 520px; margin: 0 auto; }
+
+.form-panel { display: none; }
+.form-panel.aktiv { display: block; }
+
+.reg-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+}
+
+.form-group { margin-bottom: 1rem; }
+
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--tekst);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.2px;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 13px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--tekst);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.form-group select option { background: var(--bg-card); color: var(--tekst); }
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--is);
+  box-shadow: 0 0 0 3px rgba(58,122,74,0.1);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder { color: var(--tekst-dim); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 0.92rem; margin-top: 0.5rem; }
+
+.success-msg {
+  display: none;
+  text-align: center;
+  padding: 1.1rem;
+  background: #e8f5ec;
+  border: 1px solid rgba(58,122,74,0.3);
+  border-radius: var(--radius-sm);
+  margin-top: 0.9rem;
+  font-size: 0.92rem;
+  color: var(--is);
+  font-weight: 600;
+}
+
+/* ===== SCOREBOARD ===== */
+#scoreboard { background: var(--bg); }
+
+.scoreboard-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem;
+}
+
+.scoreboard-panel {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--skygge);
+}
+
+.panel-header {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--mork);
+  padding: 1rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.panel-header.vann-header { border-left: 3px solid var(--vann-lys); }
+.panel-header:not(.vann-header) { border-left: 3px solid var(--grønn); }
+
+.scoreboard-list { list-style: none; }
+
+.score-item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.score-item:last-child { border-bottom: none; }
+.score-item:hover { background: var(--bg-2); }
+
+.score-rank {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--tekst-dim);
+  margin-right: 0.9rem;
+  flex-shrink: 0;
+}
+
+.score-rank.pos-1 { background: rgba(184,122,16,0.12); border-color: var(--gull); color: var(--gull); }
+.score-rank.pos-2 { background: rgba(122,136,152,0.1); border-color: var(--solv); color: var(--solv); }
+.score-rank.pos-3 { background: rgba(138,84,24,0.1); border-color: var(--bronse); color: var(--bronse); }
+
+.score-info { flex: 1; }
+.score-navn { font-weight: 700; font-size: 0.9rem; color: var(--mork); }
+.score-detaljer { font-size: 0.74rem; color: var(--tekst-dim); margin-top: 1px; }
+.score-poeng { font-size: 1rem; font-weight: 900; color: var(--is); }
+
+.tom-melding { padding: 2rem; text-align: center; color: var(--tekst-dim); font-size: 0.86rem; }
+
+/* ===== MINE TURER ===== */
+#mine-turer { background: var(--bg-2); }
+
+.mine-logger {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.tur-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--grønn);
+}
+
+.tur-card.vann-tur { border-left-color: var(--vann-lys); }
+
+.tur-type {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--grønn);
+  margin-bottom: 0.2rem;
+}
+
+.tur-type.vann-type { color: var(--vann-lys); }
+
+.tur-navn { font-size: 0.98rem; font-weight: 700; color: var(--mork); margin-bottom: 0.22rem; }
+.tur-meta { font-size: 0.76rem; color: var(--tekst-dim); margin-bottom: 0.35rem; }
+.tur-notat { font-size: 0.8rem; color: var(--tekst-dim); font-style: italic; }
+
+/* ===== RUTER ===== */
+#ruter { background: var(--bg-2); }
+
+.ruter-wrapper {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.ruter-venstre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 620px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ruter-venstre::-webkit-scrollbar { width: 5px; }
+.ruter-venstre::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
+
+.ruter-hoyre { position: sticky; top: 72px; }
+
+#ruter-kart {
+  height: 540px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--skygge);
+  overflow: hidden;
+}
+
+.rute-kort {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  border-left: 3px solid var(--border-2);
+}
+
+.rute-kort:hover { border-color: var(--is); box-shadow: var(--skygge); transform: translateX(2px); }
+.rute-kort.aktiv { border-left-color: var(--is); background: var(--is-lys); }
+
+.rute-kort.grad-easy    { border-left-color: #4a8c5a; }
+.rute-kort.grad-moderate { border-left-color: #3a78a8; }
+.rute-kort.grad-tough   { border-left-color: #c87820; }
+.rute-kort.grad-very-tough { border-left-color: #b04040; }
+
+.rute-navn {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--mork);
+  margin-bottom: 0.4rem;
+  line-height: 1.3;
+}
+
+.rute-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.rute-gradering {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 50px;
+}
+
+.grad-easy     .rute-gradering { background: #e8f3eb; color: #3a7a4a; }
+.grad-moderate .rute-gradering { background: #e6f0f8; color: #2a5a88; }
+.grad-tough    .rute-gradering { background: #fdf3e6; color: #a06010; }
+.grad-very-tough .rute-gradering { background: #fdf0f0; color: #904040; }
+
+.rute-detalj {
+  font-size: 0.76rem;
+  color: var(--tekst-dim);
+}
+
+.ruter-kart-info {
+  margin-top: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.ruter-kart-info h3 { font-size: 0.95rem; font-weight: 700; color: var(--mork); margin-bottom: 0.5rem; }
+
+.rute-stats {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.rute-stat { text-align: center; }
+.rute-stat .tal { font-size: 1.1rem; font-weight: 900; color: var(--is); display: block; }
+.rute-stat .etikett { font-size: 0.68rem; color: var(--tekst-dim); text-transform: uppercase; letter-spacing: 0.4px; }
+
+.ruter-laster {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--tekst-dim);
+  font-size: 0.88rem;
+}
+
+.ruter-feil {
+  padding: 1rem;
+  background: #fdf0f0;
+  border: 1px solid #e8c4c4;
+  border-radius: var(--radius);
+  color: #904040;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .ruter-wrapper { grid-template-columns: 1fr; }
+  .ruter-hoyre { position: static; }
+  .ruter-venstre { max-height: none; }
+  #ruter-kart { height: 360px; }
+}
+
+/* ===== TURLEDER ===== */
+#turleder { background: var(--bg); }
+
+.turleder-wrapper {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.turleder-venstre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.turleder-hoyre {
+  position: sticky;
+  top: 72px;
+}
+
+#turleder-kart {
+  height: 540px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--skygge);
+  overflow: hidden;
+}
+
+/* Waypoint rows */
+.waypoint-liste { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.waypoint-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.waypoint-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--tekst-dim);
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.waypoint-label.start { color: var(--is); }
+.waypoint-label.maal  { color: #b05050; }
+
+.waypoint-row select {
+  flex: 1;
+  padding: 9px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--tekst);
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: border-color 0.18s;
+}
+
+.waypoint-row select:focus {
+  outline: none;
+  border-color: var(--is);
+  box-shadow: 0 0 0 3px rgba(58,122,74,0.1);
+}
+
+.waypoint-connector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0 0 52px;
+  color: var(--border-2);
+  font-size: 0.78rem;
+}
+
+.waypoint-connector::before {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin-right: 4px;
+}
+
+.btn-fjern-stopp {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e0c4c4;
+  background: #fdf0f0;
+  color: #b05050;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+
+.btn-fjern-stopp:hover { background: #c04040; color: #fff; border-color: #c04040; }
+
+/* Results */
+.tur-summary {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--is);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tur-summary-stat { text-align: center; }
+
+.tur-summary-stat .tal {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--is);
+  display: block;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.tur-summary-stat .etikett {
+  font-size: 0.72rem;
+  color: var(--tekst-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+}
+
+.tur-etapper {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.etappe-rad {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.83rem;
+}
+
+.etappe-nr {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--tekst-dim);
+  flex-shrink: 0;
+}
+
+.etappe-info { flex: 1; }
+.etappe-navn { font-weight: 600; color: var(--mork); }
+.etappe-detalj { color: var(--tekst-dim); font-size: 0.76rem; margin-top: 1px; }
+.etappe-tid { font-weight: 800; color: var(--is); font-size: 0.85rem; white-space: nowrap; }
+
+.turleder-status {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.2);
+  border-radius: var(--radius-sm);
+  color: var(--is);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.turleder-feil {
+  padding: 0.75rem 1rem;
+  background: #fdf0f0;
+  border: 1px solid #e8c4c4;
+  border-radius: var(--radius-sm);
+  color: #904040;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .turleder-wrapper { grid-template-columns: 1fr; }
+  .turleder-hoyre { position: static; }
+  #turleder-kart { height: 360px; }
+}
+
+/* ===== ADMIN PASSORD-GATE ===== */
+.admin-lås-boks {
+  max-width: 360px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: var(--skygge-md);
+}
+
+.admin-lås-ikon {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+}
+
+.admin-lås-tittel {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--mork);
+  margin-bottom: 0.4rem;
+}
+
+.admin-lås-tekst {
+  font-size: 0.88rem;
+  color: var(--tekst-dim);
+  margin-bottom: 1.5rem;
+}
+
+.admin-lås-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-lås-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--tekst);
+  background: var(--bg);
+  text-align: center;
+  letter-spacing: 3px;
+  transition: border-color 0.18s;
+}
+
+.admin-lås-input:focus {
+  outline: none;
+  border-color: var(--is);
+  box-shadow: 0 0 0 3px rgba(58,122,74,0.1);
+}
+
+.admin-lås-feil {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: #c0392b;
+  font-weight: 600;
+}
+
+/* ===== ADMIN ===== */
+#admin { background: var(--bg-3); }
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--tekst-dim);
+  transition: all 0.18s;
+}
+
+.admin-tab.aktiv {
+  background: var(--is);
+  border-color: var(--is);
+  color: #fff;
+}
+
+.admin-tab:not(.aktiv):hover { border-color: var(--is); color: var(--is); background: var(--is-lys); }
+
+.admin-panel { display: none; }
+.admin-panel.aktiv { display: block; }
+
+.admin-form-wrapper { max-width: 580px; margin: 0 auto; }
+
+.admin-liste-header {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-type-btn {
+  padding: 6px 16px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--tekst-dim);
+  transition: all 0.18s;
+}
+
+.admin-type-btn.aktiv {
+  background: var(--is);
+  border-color: var(--is);
+  color: #fff;
+}
+
+.admin-liste {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-item-info { flex: 1; min-width: 0; }
+
+.admin-item-navn {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--mork);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-item-meta {
+  font-size: 0.74rem;
+  color: var(--tekst-dim);
+  margin-top: 1px;
+}
+
+.admin-item-btns {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btn-edit {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-2);
+  background: var(--bg-2);
+  color: var(--tekst-dim);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-edit:hover {
+  background: var(--is);
+  color: #fff;
+  border-color: var(--is);
+}
+
+.btn-slett {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid #e0c4c4;
+  background: #fdf0f0;
+  color: #b05050;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-slett:hover {
+  background: #c04040;
+  color: #fff;
+  border-color: #c04040;
+}
+
+/* ===== ADMIN KART-VELGER ===== */
+#admin-kart-container {
+  margin-top: 1.5rem;
+}
+
+.admin-kart-hint {
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.25);
+  color: var(--is-dim);
+  font-size: 0.83rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.6rem;
+}
+
+#admin-velger-kart {
+  height: 420px;
+  width: 100%;
+  border-radius: var(--radius);
+  border: 2px solid var(--is);
+  overflow: hidden;
+}
+
+.kart-velger-btn {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
+
+/* ===== MODAL MINI-KART ===== */
+#modal-mini-kart {
+  height: 260px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 2rem;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-tittel {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--mork);
+  margin-bottom: 1.5rem;
+  padding-right: 2rem;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 30px; height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--tekst-dim);
+  transition: all 0.18s;
+}
+
+.modal-close:hover {
+  background: var(--is);
+  color: #fff;
+  border-color: var(--is);
+}
+
+/* ===== FOOTER ===== */
+footer {
+  background: var(--mork);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.45);
+  text-align: center;
+  padding: 1.75rem;
+  font-size: 0.82rem;
+}
+
+footer span { color: rgba(120,200,130,0.8); }
+
+/* ===== LOADING ===== */
+.loading-spinner { display: flex; justify-content: center; padding: 3rem; }
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--is);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fjell-card, .vann-card { animation: fadeInUp 0.28s ease both; }
+
+/* ===== SE FLERE ===== */
+.se-fler-wrapper {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.se-fler-btn {
+  padding: 10px 28px;
+  font-size: 0.88rem;
+  letter-spacing: 0.2px;
+}
+
+/* ===== HAMBURGER ===== */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: auto;
+  z-index: 1100;
+}
+
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--tekst);
+  border-radius: 2px;
+  transition: all 0.22s;
+  transform-origin: center;
+}
+
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  #hero { grid-template-columns: 1fr; }
+  .hero-left { padding: 3rem 1.5rem 1rem; order: 2; }
+  .hero-right { height: 50vw; min-height: 260px; order: 1; }
+}
+
+@media (max-width: 768px) {
+  /* Nav */
+  nav { padding: 0 1rem; }
+  .nav-hamburger { display: flex; }
+  .nav-links {
+    display: none;
+    position: fixed;
+    top: 60px; left: 0; right: 0;
+    background: rgba(240,242,238,0.98);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 1rem 1rem;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links li { width: 100%; }
+  .nav-links a {
+    display: block;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Sections */
+  section { padding: 3rem 1rem; }
+
+  /* Hero */
+  .hero-left { padding: 2rem 1.2rem 1rem; }
+  .hero-title { font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -1px; }
+  .hero-stats { width: 100%; }
+  .hero-stat { padding: 0.85rem 1rem; flex: 1; }
+  .hero-stat .number { font-size: 1.6rem; }
+  .hero-stat .label { font-size: 0.65rem; }
+  .hero-badge { font-size: 0.68rem; }
+
+  /* Map */
+  #map { height: 380px; }
+  .kart-filter { flex-wrap: wrap; }
+
+  /* Grids */
+  .fjell-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  .vann-grid  { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  .form-row   { grid-template-columns: 1fr; }
+  .scoreboard-wrapper { grid-template-columns: 1fr; }
+
+  /* Cards */
+  .fjell-card-img { height: 110px; }
+  .fjell-card-body { padding: 0.75rem; }
+  .fjell-navn { font-size: 0.92rem; }
+  .vann-card { padding: 0.9rem; }
+
+  /* Scoreboard */
+  .score-card { padding: 1rem; }
+  .score-nummer { font-size: 2.5rem; }
+
+  /* Forms */
+  .reg-form-wrapper { max-width: 100%; }
+  .reg-tabs { flex-wrap: wrap; }
+  .reg-tab { flex: 1; text-align: center; font-size: 0.8rem; padding: 8px; }
+
+  /* Turleder */
+  .turleder-wrapper { grid-template-columns: 1fr; }
+  .turleder-hoyre { position: static; }
+  #turleder-kart { height: 300px; }
+
+  /* Ruter */
+  .ruter-wrapper { grid-template-columns: 1fr; }
+  .ruter-hoyre { position: static; }
+
+  /* Admin */
+  .admin-tabs { flex-wrap: wrap; }
+  .admin-tab { flex: 1; text-align: center; font-size: 0.8rem; }
+  .admin-form-wrapper { max-width: 100%; }
+  .admin-kart-container { height: 260px; }
+
+  /* Modal */
+  .modal-boks {
+    padding: 1.25rem;
+    max-width: calc(100vw - 2rem);
+    margin: 1rem;
+  }
+  #modal-mini-kart { height: 200px; }
+
+  /* Turleder waypoints */
+  .waypoint-item { flex-wrap: wrap; gap: 0.4rem; }
+  .waypoint-item select { width: 100%; }
+
+  /* Tur cards */
+  .tur-card { padding: 1rem; }
+}
+
+@media (max-width: 480px) {
+  /* Single-column grids on very small phones */
+  .fjell-grid { grid-template-columns: 1fr; }
+  .vann-grid  { grid-template-columns: 1fr; }
+
+  /* Hero stats stacked */
+  .hero-stats { flex-direction: column; width: auto; border-radius: var(--radius); }
+  .hero-stat  { border-right: none; border-bottom: 1px solid rgba(58,122,74,0.15); }
+  .hero-stat:last-child { border-bottom: none; }
+
+  /* Buttons full width on forms */
+  .hero-cta { flex-direction: column; }
+  .hero-cta .btn { width: 100%; justify-content: center; }
+
+  #map { height: 320px; }
+  .hero-badge { font-size: 0.62rem; letter-spacing: 0.4px; }
+}

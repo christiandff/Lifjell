@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lifjell — Fjell & Vann Tracker</title>
+  <meta name="description" content="Registrer fjell du har bestiget og vann du har badet i rundt Lifjell og Telemark.">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Eget stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <a href="#hero" class="nav-logo">
+    <span class="logo-icon">⛰</span>
+    Lifjell
+  </a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Meny">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#kart" class="nav-link-item">🗺 Kart</a></li>
+    <li><a href="#fjell-liste" class="nav-link-item">⛰ Fjell</a></li>
+    <li><a href="#vann-liste" class="nav-link-item">🌊 Vann</a></li>
+    <li><a href="#registrer" class="nav-link-item">✏️ Registrer</a></li>
+    <li><a href="#scoreboard" class="nav-link-item">🏆 Scoreboard</a></li>
+    <li><a href="#mine-turer" class="nav-link-item">📖 Mine turer</a></li>
+    <!-- <li><a href="#ruter" class="nav-link-item">🥾 Ruter</a></li> -->
+    <li><a href="#turleder" class="nav-link-item">🧭 Turleder</a></li>
+    <li><a href="#admin" class="nav-link-item">⚙️ Admin</a></li>
+  </ul>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section id="hero">
+
+  <div class="hero-left">
+    <div class="hero-badge">⛰ Lifjell · Bø · Hjartdal · Notodden · Seljord</div>
+    <h1 class="hero-title">Bestig<br>fjellene.<br><span>Dykk i vannene.</span></h1>
+    <p class="hero-subtitle">Registrer dine opplevelser på Lifjell-platået og konkurrér med venner om flest poeng.</p>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="number" id="stat-fjell">0</span>
+        <span class="label">Fjell bestiget</span>
+      </div>
+      <div class="hero-stat">
+        <span class="number" id="stat-vann">0</span>
+        <span class="label">Vann badet</span>
+      </div>
+      <div class="hero-stat">
+        <span class="number" id="stat-poeng">0</span>
+        <span class="label">Totale poeng</span>
+      </div>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#registrer" class="btn btn-primary">✏️ Registrer tur</a>
+      <a href="#kart" class="btn btn-secondary">🗺 Se kartet</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div id="mountain-container"></div>
+  </div>
+
+</section>
+
+<!-- ===== KART ===== -->
+<section id="kart">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">🗺 Kart</span>
+      <h2 class="section-title">Oversikt over fjell og vann</h2>
+      <p class="section-desc">Lifjell-platået mellom E134, RV36 og RV3330. Klikk en markør for info.</p>
+    </div>
+    <div class="kart-filter">
+      <button class="kart-filter-btn aktiv" id="toggle-fjell" onclick="toggleFjellLag()">⛰ Fjell</button>
+      <button class="kart-filter-btn aktiv" id="toggle-vann" onclick="toggleVannLag()">🌊 Vann</button>
+    </div>
+    <div class="kart-wrapper">
+      <div id="map"></div>
+    </div>
+    <div class="kart-legend">
+      <div class="legend-item">
+        <div class="legend-dot fjell"></div>
+        <span>Fjelltopp</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot vann"></div>
+        <span>Badested</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FJELL LISTE ===== -->
+<section id="fjell-liste">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">⛰ Fjell</span>
+      <h2 class="section-title">Fjell i Lifjell-området</h2>
+      <p class="section-desc">33 topper på Lifjell-platået, sortert fra høyeste til laveste.</p>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" id="fjell-filter" placeholder="🔍 Søk etter fjell eller kommune...">
+    </div>
+
+    <div class="fjell-grid" id="fjell-grid">
+      <div class="loading-spinner"><div class="spinner"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== VANN LISTE ===== -->
+<section id="vann-liste">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag vann-tag">🌊 Vann</span>
+      <h2 class="section-title">Badesteder i området</h2>
+      <p class="section-desc">Marker vannet du har badet i for å tjene poeng!</p>
+    </div>
+
+    <div class="vann-grid" id="vann-grid">
+      <div class="loading-spinner"><div class="spinner"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== REGISTRER ===== -->
+<section id="registrer">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">✏️ Registrer</span>
+      <h2 class="section-title">Loggfør din opplevelse</h2>
+      <p class="section-desc">Registrer fjellbesøk eller bad og tjen poeng på scoreboarden.</p>
+    </div>
+
+    <div class="reg-tabs">
+      <button class="reg-tab aktiv" data-tab="fjell">⛰ Fjellbesøk</button>
+      <button class="reg-tab" data-tab="vann">🌊 Bading</button>
+    </div>
+
+    <div class="reg-form-wrapper">
+
+      <!-- FJELL FORM -->
+      <div class="form-panel aktiv" data-panel="fjell">
+        <form class="reg-form" id="form-fjell">
+          <div class="form-group">
+            <label for="reg-fjell-select">⛰ Hvilket fjell bestiget du?</label>
+            <select id="reg-fjell-select" required>
+              <option value="">— Velg fjell —</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-fjell-bruker">👤 Ditt navn</label>
+              <input type="text" id="reg-fjell-bruker" placeholder="Ola Nordmann" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-fjell-dato">📅 Dato</label>
+              <input type="date" id="reg-fjell-dato" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-fjell-notat">📝 Notat (valgfritt)</label>
+            <textarea id="reg-fjell-notat" rows="3" placeholder="Fantastisk utsikt i dag! Klart vær helt til horisonten..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full">⛰ Registrer fjellbesøk</button>
+        </form>
+        <div class="success-msg" id="success-fjell">
+          🎉 Fjellbesøk registrert! Bra jobba — poengene er lagt til!
+        </div>
+      </div>
+
+      <!-- VANN FORM -->
+      <div class="form-panel" data-panel="vann">
+        <form class="reg-form" id="form-vann">
+          <div class="form-group">
+            <label for="reg-vann-select">🌊 Hvilket vann badet du i?</label>
+            <select id="reg-vann-select" required>
+              <option value="">— Velg vann —</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-vann-bruker">👤 Ditt navn</label>
+              <input type="text" id="reg-vann-bruker" placeholder="Ola Nordmann" required>
+            </div>
+            <div class="form-group">
+              <label for="reg-vann-dato">📅 Dato</label>
+              <input type="date" id="reg-vann-dato" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-vann-notat">📝 Notat (valgfritt)</label>
+            <textarea id="reg-vann-notat" rows="3" placeholder="Iskaldt men herlig! Sola skinte og vannet var krystallklart..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-vann btn-full">🌊 Registrer bad</button>
+        </form>
+        <div class="success-msg" id="success-vann">
+          🎉 Bading registrert! Poengene er lagt til scoreboarden!
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCOREBOARD ===== -->
+<section id="scoreboard">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">🏆 Scoreboard</span>
+      <h2 class="section-title">Ledertavle</h2>
+      <p class="section-desc">Hvem har best poengsum? Poeng baseres på fjellenes høyde og vannenes svanskelighetsgrad.</p>
+    </div>
+
+    <div class="scoreboard-wrapper">
+      <div class="scoreboard-panel">
+        <div class="panel-header">
+          🏔 Fjellbestigere
+        </div>
+        <ul class="scoreboard-list" id="fjell-scoreboard">
+          <li class="tom-melding">Ingen fjellbesøk registrert ennå.</li>
+        </ul>
+      </div>
+
+      <div class="scoreboard-panel">
+        <div class="panel-header vann-header">
+          🌊 Badere
+        </div>
+        <ul class="scoreboard-list" id="vann-scoreboard">
+          <li class="tom-melding">Ingen bad registrert ennå.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MINE TURER ===== -->
+<section id="mine-turer">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">📖 Logg</span>
+      <h2 class="section-title">Alle registrerte turer</h2>
+      <p class="section-desc">Komplett historikk over bestigninger og bad.</p>
+    </div>
+
+    <div class="mine-logger" id="mine-turer-liste">
+    </div>
+  </div>
+</section>
+
+<!-- ===== RUTER FRA UT.NO ===== -->
+<section id="ruter" style="display:none">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">🥾 Ruter</span>
+      <h2 class="section-title">Turruter i Lifjell-området</h2>
+      <p class="section-desc">GPS-ruter hentet direkte fra <strong>ut.no</strong> / Nasjonal Turbase.</p>
+    </div>
+
+    <div class="ruter-wrapper">
+
+      <!-- VENSTRE: liste -->
+      <div class="ruter-venstre">
+        <div id="ruter-liste">
+          <button class="btn btn-primary" onclick="hentRuter()" id="hent-ruter-btn" style="width:100%;justify-content:center;">
+            Hent ruter fra ut.no
+          </button>
+        </div>
+      </div>
+
+      <!-- HØYRE: kart -->
+      <div class="ruter-hoyre">
+        <div id="ruter-kart"></div>
+        <div id="ruter-kart-info" style="display:none;" class="ruter-kart-info"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== TURLEDER ===== -->
+<section id="turleder">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">🧭 Turleder</span>
+      <h2 class="section-title">Planlegg turen</h2>
+      <p class="section-desc">Velg start, mellomsteder og mål — se gangtid og avstand til fots.</p>
+    </div>
+
+    <div class="turleder-wrapper">
+
+      <!-- VENSTRE: skjema + resultater -->
+      <div class="turleder-venstre">
+        <div id="waypoint-liste" class="waypoint-liste"></div>
+
+        <div style="display:flex;gap:0.5rem;">
+          <button type="button" class="btn btn-secondary" style="flex:1;" id="legg-til-stopp-btn" onclick="leggTilStopp()">+ Mellomsteg</button>
+          <button type="button" class="btn btn-secondary" style="flex:1;" id="optimaliser-btn" onclick="optimaliserRekkefølge()" title="Sorter mellomstegene i mest effektiv rekkefølge">⚡ Optimaliser</button>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="beregnTur()" style="margin-top:0.5rem;width:100%;justify-content:center;">
+          Beregn tur til fots
+        </button>
+
+        <div id="turleder-laster" style="display:none;" class="turleder-status">
+          <div class="spinner" style="width:20px;height:20px;margin-right:8px;"></div> Beregner rute…
+        </div>
+        <div id="turleder-feil" style="display:none;" class="turleder-feil"></div>
+
+        <!-- Resultater -->
+        <div id="turleder-resultat" style="display:none;">
+          <div class="tur-summary" id="tur-summary"></div>
+          <div class="tur-etapper" id="tur-etapper"></div>
+        </div>
+      </div>
+
+      <!-- HØYRE: kart -->
+      <div class="turleder-hoyre">
+        <div id="turleder-kart"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== ADMIN ===== -->
+<section id="admin">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">⚙️ Admin</span>
+      <h2 class="section-title">Legg til og rediger</h2>
+      <p class="section-desc">Legg til nye topper eller vann, og rediger eksisterende.</p>
+    </div>
+
+    <!-- PASSORD-GATE -->
+    <div id="admin-lås">
+      <div class="admin-lås-boks">
+        <div class="admin-lås-ikon">🔒</div>
+        <h3 class="admin-lås-tittel">Admin-tilgang</h3>
+        <p class="admin-lås-tekst">Skriv inn passordet for å fortsette.</p>
+        <form id="admin-passord-form" class="admin-lås-form">
+          <input type="password" id="admin-passord-input" class="admin-lås-input" placeholder="Passord" autocomplete="current-password">
+          <button type="submit" class="btn btn-primary" style="width:100%;">Logg inn</button>
+        </form>
+        <p id="admin-feil" class="admin-lås-feil" style="display:none;">Feil passord. Prøv igjen.</p>
+      </div>
+    </div>
+
+    <!-- ADMIN INNHOLD (skjult til passord er riktig) -->
+    <div id="admin-innhold" style="display:none;">
+
+    <div class="admin-tabs">
+      <button class="admin-tab aktiv" data-atab="ny-fjell">+ Ny topp</button>
+      <button class="admin-tab" data-atab="ny-vann">+ Nytt vann</button>
+      <button class="admin-tab" data-atab="rediger">Rediger eksisterende</button>
+    </div>
+
+    <!-- NY FJELL -->
+    <div class="admin-panel aktiv" data-apanel="ny-fjell">
+      <div class="admin-form-wrapper">
+        <form class="reg-form" id="form-ny-fjell">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Navn på toppen</label>
+              <input type="text" id="ny-fjell-navn" placeholder="Toppnavn" required>
+            </div>
+            <div class="form-group">
+              <label>Høyde (m over havet)</label>
+              <input type="number" id="ny-fjell-hoyde" placeholder="1050" min="1" max="2500">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Kommune</label>
+            <input type="text" id="ny-fjell-kommune" placeholder="Hjartdal" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Breddegrad (lat)</label>
+              <input type="number" id="ny-fjell-lat" placeholder="59.5100" step="0.00001" min="59" max="60" required>
+            </div>
+            <div class="form-group">
+              <label>Lengdegrad (lng)</label>
+              <input type="number" id="ny-fjell-lng" placeholder="8.8800" step="0.00001" min="8" max="10" required>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-full kart-velger-btn" onclick="åpneAdminKart('ny-fjell-lat','ny-fjell-lng')">🗺 Velg posisjon på kart</button>
+          <div class="form-group" style="margin-top:0.75rem;">
+            <label>Beskrivelse</label>
+            <textarea id="ny-fjell-beskrivelse" rows="2" placeholder="Kort beskrivelse av toppen..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">+ Legg til topp</button>
+        </form>
+        <div class="success-msg" id="success-ny-fjell">Topp lagt til!</div>
+      </div>
+    </div>
+
+    <!-- NY VANN -->
+    <div class="admin-panel" data-apanel="ny-vann">
+      <div class="admin-form-wrapper">
+        <form class="reg-form" id="form-ny-vann">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Navn på vannet</label>
+              <input type="text" id="ny-vann-navn" placeholder="Tjønnavn" required>
+            </div>
+            <div class="form-group">
+              <label>Poeng</label>
+              <input type="number" id="ny-vann-poeng" placeholder="35" min="1" max="100" value="35">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Kommune</label>
+            <input type="text" id="ny-vann-kommune" placeholder="Hjartdal" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Breddegrad (lat)</label>
+              <input type="number" id="ny-vann-lat" placeholder="59.5000" step="0.00001" min="59" max="60" required>
+            </div>
+            <div class="form-group">
+              <label>Lengdegrad (lng)</label>
+              <input type="number" id="ny-vann-lng" placeholder="8.9000" step="0.00001" min="8" max="10" required>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-full kart-velger-btn" onclick="åpneAdminKart('ny-vann-lat','ny-vann-lng')">🗺 Velg posisjon på kart</button>
+          <div class="form-group" style="margin-top:0.75rem;">
+            <label>Beskrivelse</label>
+            <textarea id="ny-vann-beskrivelse" rows="2" placeholder="Kort beskrivelse av vannet..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-vann btn-full">+ Legg til vann</button>
+        </form>
+        <div class="success-msg" id="success-ny-vann">Vann lagt til!</div>
+      </div>
+    </div>
+
+    <!-- REDIGER -->
+    <div class="admin-panel" data-apanel="rediger">
+      <div class="admin-liste-header">
+        <button class="admin-type-btn aktiv" data-dtype="fjell">Fjell</button>
+        <button class="admin-type-btn" data-dtype="vann">Vann</button>
+      </div>
+      <div id="admin-fjell-liste" class="admin-liste"></div>
+      <div id="admin-vann-liste" class="admin-liste" style="display:none"></div>
+    </div>
+
+    <!-- DELT KART-VELGER -->
+    <div id="admin-kart-container" style="display:none;">
+      <div class="admin-kart-hint" id="admin-kart-hint">Klikk i kartet for å sette posisjon — markøren kan dras for finjustering</div>
+      <div id="admin-velger-kart"></div>
+    </div>
+
+    </div><!-- /admin-innhold -->
+  </div>
+</section>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="lukkModal()">×</button>
+    <h2 class="modal-tittel" id="modal-tittel">Rediger</h2>
+    <form class="reg-form" id="form-rediger" style="border:none;padding:0;background:transparent;">
+      <input type="hidden" id="edit-id">
+      <input type="hidden" id="edit-type">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Navn</label>
+          <input type="text" id="edit-navn" required>
+        </div>
+        <div class="form-group" id="edit-hoyde-gruppe">
+          <label>Høyde (m)</label>
+          <input type="number" id="edit-hoyde" min="1" max="2500">
+        </div>
+        <div class="form-group" id="edit-poeng-gruppe" style="display:none">
+          <label>Poeng</label>
+          <input type="number" id="edit-poeng" min="1" max="100">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Kommune</label>
+        <input type="text" id="edit-kommune">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Breddegrad (lat)</label>
+          <input type="number" id="edit-lat" step="0.00001" oninput="oppdaterModalMarkør()">
+        </div>
+        <div class="form-group">
+          <label>Lengdegrad (lng)</label>
+          <input type="number" id="edit-lng" step="0.00001" oninput="oppdaterModalMarkør()">
+        </div>
+      </div>
+      <div id="modal-mini-kart"></div>
+      <div class="form-group">
+        <label>Beskrivelse</label>
+        <textarea id="edit-beskrivelse" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Lagre endringer</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p>⛰ <span>Lifjell</span> — Registrer, konkurrér og utforsk naturen i Telemark</p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="mountain3d.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
