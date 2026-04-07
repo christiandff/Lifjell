@@ -276,6 +276,14 @@
       <p class="section-desc">Hvem har best poengsum? Poeng baseres på fjellenes høyde og vannenes svanskelighetsgrad.</p>
     </div>
 
+    <div class="tidsfilter" id="scoreboard-filter">
+      <button class="tidsfilter-btn aktiv" data-dager="" onclick="settScoreboardFilter('')">Alt</button>
+      <button class="tidsfilter-btn" data-dager="7" onclick="settScoreboardFilter('7')">1 uke</button>
+      <button class="tidsfilter-btn" data-dager="30" onclick="settScoreboardFilter('30')">1 mnd</button>
+      <button class="tidsfilter-btn" data-dager="183" onclick="settScoreboardFilter('183')">6 mnd</button>
+      <button class="tidsfilter-btn" data-dager="365" onclick="settScoreboardFilter('365')">1 år</button>
+    </div>
+
     <div class="scoreboard-wrapper">
       <div class="scoreboard-panel">
         <div class="panel-header">
@@ -446,6 +454,13 @@
 
     <!-- MINE TURER -->
     <div class="profil-panel" data-ppanel="turer">
+      <div class="tidsfilter" id="turer-filter" style="margin-bottom:1.5rem;">
+        <button class="tidsfilter-btn aktiv" data-dager="" onclick="settTurerFilter('')">Alt</button>
+        <button class="tidsfilter-btn" data-dager="7" onclick="settTurerFilter('7')">1 uke</button>
+        <button class="tidsfilter-btn" data-dager="30" onclick="settTurerFilter('30')">1 mnd</button>
+        <button class="tidsfilter-btn" data-dager="183" onclick="settTurerFilter('183')">6 mnd</button>
+        <button class="tidsfilter-btn" data-dager="365" onclick="settTurerFilter('365')">1 år</button>
+      </div>
       <div class="mine-logger" id="mine-turer-liste"></div>
     </div>
 

@@ -4,6 +4,9 @@ let state = {
   aktiveTab: 'fjell'
 };
 
+let aktivScoreboardFilter = null; // null = alt tid, tall = antall dager
+let aktivTurerFilter = null;
+
 let kart = null;
 let fjellMarkers = {};
 let vannMarkers = {};
@@ -512,6 +515,20 @@ function renderScoreboard() {
   renderHytteScoreboard();
 }
 
+function settScoreboardFilter(dager) {
+  aktivScoreboardFilter = dager ? parseInt(dager) : null;
+  document.querySelectorAll('#scoreboard-filter .tidsfilter-btn').forEach(btn =>
+    btn.classList.toggle('aktiv', btn.dataset.dager === String(dager || '')));
+  renderScoreboard();
+}
+
+function settTurerFilter(dager) {
+  aktivTurerFilter = dager ? parseInt(dager) : null;
+  document.querySelectorAll('#turer-filter .tidsfilter-btn').forEach(btn =>
+    btn.classList.toggle('aktiv', btn.dataset.dager === String(dager || '')));
+  renderMineTurer();
+}
+
 // Hjelp: finn hytte for bruker fra brukerlista
 function hytteTilBruker(brukerNavn) {
   return hentBrukere().find(b => b.navn === brukerNavn)?.hytte || '';
@@ -531,19 +548,25 @@ function renderFjellScoreboard() {
   if (!container) return;
 
   const poengPerBruker = {};
+  const logger = filtrerLoggerPåTid(state.logger, aktivScoreboardFilter);
 
-  state.logger.forEach(l => {
+  logger.forEach(l => {
     if (l.type === 'fjell') {
       const fjell = FJELL_DATA.find(f => f.id === l.id);
       if (!fjell) return;
       if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, fjell: new Set() };
-      poengPerBruker[l.bruker].fjell.add(l.id);
-      poengPerBruker[l.bruker].poeng += fjell.poeng;
+      if (!poengPerBruker[l.bruker].fjell.has(l.id)) {
+        poengPerBruker[l.bruker].fjell.add(l.id);
+        poengPerBruker[l.bruker].poeng += fjell.poeng;
+      }
     } else if (l.type === 'tur' && l.fjell?.length) {
       if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, fjell: new Set() };
       l.fjell.forEach(id => {
         const fjell = FJELL_DATA.find(f => f.id === id);
-        if (fjell) { poengPerBruker[l.bruker].fjell.add(id); poengPerBruker[l.bruker].poeng += fjell.poeng; }
+        if (fjell && !poengPerBruker[l.bruker].fjell.has(id)) {
+          poengPerBruker[l.bruker].fjell.add(id);
+          poengPerBruker[l.bruker].poeng += fjell.poeng;
+        }
       });
     }
   });
@@ -577,19 +600,25 @@ function renderVannScoreboard() {
   if (!container) return;
 
   const poengPerBruker = {};
+  const logger = filtrerLoggerPåTid(state.logger, aktivScoreboardFilter);
 
-  state.logger.forEach(l => {
+  logger.forEach(l => {
     if (l.type === 'vann') {
       const vann = VANN_DATA.find(v => v.id === l.id);
       if (!vann) return;
       if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, vann: new Set() };
-      poengPerBruker[l.bruker].vann.add(l.id);
-      poengPerBruker[l.bruker].poeng += vann.poeng;
+      if (!poengPerBruker[l.bruker].vann.has(l.id)) {
+        poengPerBruker[l.bruker].vann.add(l.id);
+        poengPerBruker[l.bruker].poeng += vann.poeng;
+      }
     } else if (l.type === 'tur' && l.vann?.length) {
       if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, vann: new Set() };
       l.vann.forEach(id => {
         const vann = VANN_DATA.find(v => v.id === id);
-        if (vann) { poengPerBruker[l.bruker].vann.add(id); poengPerBruker[l.bruker].poeng += vann.poeng; }
+        if (vann && !poengPerBruker[l.bruker].vann.has(id)) {
+          poengPerBruker[l.bruker].vann.add(id);
+          poengPerBruker[l.bruker].poeng += vann.poeng;
+        }
       });
     }
   });
@@ -623,8 +652,9 @@ function renderHytteScoreboard() {
   if (!container) return;
 
   const poengPerHytte = {};
+  const logger = filtrerLoggerPåTid(state.logger, aktivScoreboardFilter);
 
-  state.logger.forEach(l => {
+  logger.forEach(l => {
     const hytte = l.hytte || hytteTilBruker(l.bruker);
     if (!hytte) return;
     if (!poengPerHytte[hytte]) poengPerHytte[hytte] = { poeng: 0, brukere: new Set() };
@@ -658,7 +688,10 @@ function renderMineTurer() {
   const container = document.getElementById('mine-turer-liste');
   if (!container) return;
 
-  const sortert = [...state.logger].sort((a, b) => new Date(b.dato) - new Date(a.dato));
+  const bruker = hentAktivBruker();
+  const mine = bruker ? state.logger.filter(l => l.bruker === bruker.navn) : state.logger;
+  const filtrert = filtrerLoggerPåTid(mine, aktivTurerFilter);
+  const sortert = [...filtrert].sort((a, b) => new Date(b.dato) - new Date(a.dato));
 
   if (sortert.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--stein); grid-column:1/-1;">
@@ -708,9 +741,11 @@ function renderMineTurer() {
 
 // ===== HERO STATS =====
 function oppdaterHeroStats() {
+  const bruker = hentAktivBruker();
+  const mine = bruker ? state.logger.filter(l => l.bruker === bruker.navn) : [];
   const fjellIds = new Set();
   const vannIds = new Set();
-  state.logger.forEach(l => {
+  mine.forEach(l => {
     if (l.type === 'fjell') fjellIds.add(l.id);
     else if (l.type === 'vann') vannIds.add(l.id);
     else if (l.type === 'tur') {
@@ -720,7 +755,7 @@ function oppdaterHeroStats() {
   });
   const besøkteFjell = fjellIds.size;
   const badedeVann = vannIds.size;
-  const totPoeng = state.logger.reduce((sum, l) => sum + (l.poeng || 0), 0);
+  const totPoeng = mine.reduce((sum, l) => sum + (l.poeng || 0), 0);
 
   const elFjell = document.getElementById('stat-fjell');
   const elVann = document.getElementById('stat-vann');
@@ -779,6 +814,7 @@ function registrerTur(e) {
   valdteVann = [];
   renderChips();
   document.getElementById('reg-tur-notat').value = '';
+  document.getElementById('reg-tur-dato').value = new Date().toISOString().split('T')[0];
   oppdaterAlt();
 }
 
@@ -810,31 +846,50 @@ function initKartMarkorer() {
 
 // ===== HELPERS =====
 function erFjellBesøkt(id) {
+  const bruker = hentAktivBruker();
+  if (!bruker) return false;
   return state.logger.some(l =>
-    (l.type === 'fjell' && l.id === id) ||
-    (l.type === 'tur' && l.fjell?.includes(id))
+    l.bruker === bruker.navn &&
+    ((l.type === 'fjell' && l.id === id) ||
+     (l.type === 'tur' && l.fjell?.includes(id)))
   );
 }
 
 function erVannBadet(id) {
+  const bruker = hentAktivBruker();
+  if (!bruker) return false;
   return state.logger.some(l =>
-    (l.type === 'vann' && l.id === id) ||
-    (l.type === 'tur' && l.vann?.includes(id))
+    l.bruker === bruker.navn &&
+    ((l.type === 'vann' && l.id === id) ||
+     (l.type === 'tur' && l.vann?.includes(id)))
   );
 }
 
 function antallBesøkFjell(id) {
+  const bruker = hentAktivBruker();
+  if (!bruker) return 0;
   return state.logger.filter(l =>
-    (l.type === 'fjell' && l.id === id) ||
-    (l.type === 'tur' && l.fjell?.includes(id))
+    l.bruker === bruker.navn &&
+    ((l.type === 'fjell' && l.id === id) ||
+     (l.type === 'tur' && l.fjell?.includes(id)))
   ).length;
 }
 
 function antallBadVann(id) {
+  const bruker = hentAktivBruker();
+  if (!bruker) return 0;
   return state.logger.filter(l =>
-    (l.type === 'vann' && l.id === id) ||
-    (l.type === 'tur' && l.vann?.includes(id))
+    l.bruker === bruker.navn &&
+    ((l.type === 'vann' && l.id === id) ||
+     (l.type === 'tur' && l.vann?.includes(id)))
   ).length;
+}
+
+function filtrerLoggerPåTid(logger, dager) {
+  if (!dager) return logger;
+  const grense = new Date();
+  grense.setDate(grense.getDate() - dager);
+  return logger.filter(l => new Date(l.dato) >= grense);
 }
 
 function formaterDato(dato) {
@@ -897,7 +952,7 @@ function leggTilFjell(e) {
   if (!navn || !kommune || !lat || !lng) return;
 
   const egne = hentEgneFjell();
-  const nyId = 10000 + Date.now() % 1000000;
+  const nyId = Date.now() + Math.floor(Math.random() * 1000);
   const nyFjell = { id: nyId, navn, hoyde, kommune, lat, lng, beskrivelse: beskrivelse || `${navn} — brukerregistrert topp.`, bilde: null };
   nyFjell.poeng = hoyde ? Math.round(hoyde / 10) : 20;
 
@@ -929,7 +984,7 @@ function leggTilVann(e) {
   if (!navn || !kommune || !lat || !lng) return;
 
   const egne = hentEgneVann();
-  const nyId = 20000 + Date.now() % 1000000;
+  const nyId = Date.now() + Math.floor(Math.random() * 1000);
   const nyVann = { id: nyId, navn, poeng, kommune, lat, lng, beskrivelse: beskrivelse || `${navn} — brukerregistrert vann.` };
 
   egne.push(nyVann);
@@ -1951,7 +2006,12 @@ function renderVennerListe(venner) {
 }
 
 function initProfilKart() {
-  if (profilKart) return;
+  if (profilKart) {
+    // Oppdater markørposisjon og kartvisning ved re-innlogging
+    if (profilMarker) profilMarker.setLatLng([profilHerErVi.lat, profilHerErVi.lng]);
+    profilKart.setView([profilHerErVi.lat, profilHerErVi.lng], profilKart.getZoom());
+    return;
+  }
   const el = document.getElementById('profil-kart');
   if (!el) return;
 

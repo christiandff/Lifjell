@@ -953,6 +953,36 @@ section { padding: 5rem 2rem; }
   font-weight: 600;
 }
 
+/* ===== TIDSFILTER ===== */
+.tidsfilter {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  background: var(--bg-3);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem;
+  width: fit-content;
+  margin-bottom: 1.5rem;
+}
+
+.tidsfilter-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tekst-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tidsfilter-btn.aktiv {
+  background: var(--bg-card);
+  color: var(--is);
+  box-shadow: var(--skygge);
+}
+
 /* ===== SCOREBOARD ===== */
 #scoreboard { background: var(--bg); }
 
