@@ -9,12 +9,68 @@ let fjellMarkers = {};
 let vannMarkers = {};
 let fjellLag = null;
 let vannLag = null;
+let herErViMarkør = null;
+
+let profilKart = null;
+let profilMarker = null;
+let profilHerErVi = { lat: 59.47638, lng: 9.01032 }; // Standard: Jønnbu
+
+// ===== NAVIGASJON =====
+const PANEL_SEKSJONER = ['profil', 'admin'];
+const ALLE_SEKSJONER = ['hero', 'kart', 'fjell-liste', 'vann-liste', 'registrer', 'scoreboard', 'turleder', 'profil', 'admin'];
+
+function navigerTil(id) {
+  const seksjonId = id.startsWith('#') ? id.slice(1) : id;
+
+  if (PANEL_SEKSJONER.includes(seksjonId)) {
+    // Vis panel, skjul scrollbart innhold
+    document.body.classList.add('panel-aktiv');
+    PANEL_SEKSJONER.forEach(sid => document.getElementById(sid)?.classList.remove('aktiv-side'));
+    document.getElementById(seksjonId)?.classList.add('aktiv-side');
+    window.scrollTo(0, 0);
+  } else {
+    // Skjul paneler, scroll til seksjon
+    const varIPanelModus = document.body.classList.contains('panel-aktiv');
+    document.body.classList.remove('panel-aktiv');
+    PANEL_SEKSJONER.forEach(sid => document.getElementById(sid)?.classList.remove('aktiv-side'));
+    const el = document.getElementById(seksjonId);
+    if (el) {
+      if (varIPanelModus) {
+        // Vent til main er synlig, scroll deretter
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 20);
+      } else {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+
+  history.replaceState(null, '', '#' + seksjonId);
+
+  document.querySelectorAll('.nav-link-item').forEach(a => {
+    a.classList.toggle('aktiv', a.getAttribute('href') === '#' + seksjonId);
+  });
+
+  // Fiks kartstørrelser etter visning
+  setTimeout(() => {
+    if (seksjonId === 'kart' && kart) kart.invalidateSize();
+    if (seksjonId === 'turleder' && turlederKart) turlederKart.invalidateSize();
+    if (seksjonId === 'profil' && profilKart) profilKart.invalidateSize();
+    if (seksjonId === 'admin' && adminVelgerKart) adminVelgerKart.invalidateSize();
+  }, 50);
+}
+
+function byttProfilFane(fane) {
+  document.querySelectorAll('.profil-panel-tab').forEach(t =>
+    t.classList.toggle('aktiv', t.dataset.ptab === fane));
+  document.querySelectorAll('.profil-panel').forEach(p =>
+    p.classList.toggle('aktiv', p.dataset.ppanel === fane));
+}
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   lastData();
   initMountain3D();
-  populerSelects();
+  populerChipVelgere();
   initKart();
   renderFjellListe();
   renderVannListe();
@@ -25,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWaypoints();
   initTurlederKart();
   bindEvents();
+
+  // Login-sjekk: vis modal eller sett opp bruker
+  sjekkInnlogging();
 });
 
 // ===== LOCALSTORAGE =====
@@ -55,6 +114,18 @@ function lastData() {
 
   const vannEdits = JSON.parse(localStorage.getItem('lifjell_vann_edits') || '{}');
   VANN_DATA.forEach(v => { if (vannEdits[v.id]) Object.assign(v, vannEdits[v.id]); });
+
+  // Fjern slettede items
+  const slettedeFjell = JSON.parse(localStorage.getItem('lifjell_slettede_fjell') || '[]');
+  slettedeFjell.forEach(id => {
+    const idx = FJELL_DATA.findIndex(f => f.id === id);
+    if (idx !== -1) FJELL_DATA.splice(idx, 1);
+  });
+  const slettedeVann = JSON.parse(localStorage.getItem('lifjell_slettede_vann') || '[]');
+  slettedeVann.forEach(id => {
+    const idx = VANN_DATA.findIndex(v => v.id === id);
+    if (idx !== -1) VANN_DATA.splice(idx, 1);
+  });
 }
 
 // ===== CUSTOM DATA LAGRING =====
@@ -119,18 +190,8 @@ function initKart() {
   fjellLag = L.layerGroup().addTo(kart);
   vannLag = L.layerGroup().addTo(kart);
 
-  // "Her er vi" — Jønnbu
-  STEDER_DATA.forEach(sted => {
-    const ikon = L.divIcon({
-      className: '',
-      html: `<div style="background:#e63946;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;box-shadow:0 3px 12px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">📍</span></div>`,
-      iconSize: [32, 32], iconAnchor: [16, 32]
-    });
-    L.marker([sted.lat, sted.lng], { icon: ikon })
-      .addTo(kart)
-      .bindPopup(`<div style="font-family:'Segoe UI',sans-serif;min-width:200px;"><strong style="color:#e63946;">📍 ${sted.navn}</strong><div style="background:#fff3f3;border:1px solid #e63946;border-radius:4px;padding:4px 8px;font-size:0.78rem;color:#c1121f;font-weight:700;margin:6px 0;">🧭 HER ER VI</div><p style="font-size:0.8rem;color:#555;margin:0;">${sted.beskrivelse}</p></div>`, { maxWidth: 250 })
-      .openPopup();
-  });
+  // "Her er vi" — Bruk profil-lokasjon om satt, ellers Jønnbu
+  leggTilHerErViMarkør();
 
   FJELL_DATA.forEach(f => leggTilFjellMarkør(f));
   VANN_DATA.forEach(v => leggTilVannMarkør(v));
@@ -197,20 +258,107 @@ function lagVannPopup(vann) {
   `;
 }
 
-// ===== DYNAMISKE SELECT-LISTER =====
-function populerSelects() {
-  const fjellSelect = document.getElementById('reg-fjell-select');
-  if (fjellSelect) {
-    const sortert = [...FJELL_DATA].sort((a, b) => (b.hoyde || 0) - (a.hoyde || 0));
-    fjellSelect.innerHTML = '<option value="">— Velg fjell —</option>' +
-      sortert.map(f => `<option value="${f.id}">${f.navn}${f.hoyde ? ` (${f.hoyde}m)` : ''}</option>`).join('');
-  }
+// ===== CHIP-VELGER (ny registrer tur) =====
+let valgteFjell = []; // array av fjell-IDs
+let valdteVann  = []; // array av vann-IDs
 
-  const vannSelect = document.getElementById('reg-vann-select');
-  if (vannSelect) {
-    vannSelect.innerHTML = '<option value="">— Velg vann —</option>' +
-      VANN_DATA.map(v => `<option value="${v.id}">${v.navn} (${v.poeng}p)</option>`).join('');
+function populerChipVelgere() {
+  // Sjekk at elementene finnes (registrer-seksjonen)
+  const fjellSøk = document.getElementById('reg-fjell-søk');
+  const vannSøk  = document.getElementById('reg-vann-søk');
+  if (!fjellSøk || !vannSøk) return;
+
+  fjellSøk.addEventListener('input', () => {
+    const q = fjellSøk.value.trim().toLowerCase();
+    const forslag = document.getElementById('reg-fjell-forslag');
+    if (!q) { forslag.classList.remove('synlig'); return; }
+    const treff = [...FJELL_DATA].sort((a, b) => (b.hoyde || 0) - (a.hoyde || 0))
+      .filter(f => f.navn.toLowerCase().includes(q)).slice(0, 8);
+    forslag.innerHTML = treff.map(f => {
+      const valgt = valgteFjell.includes(f.id);
+      return `<div class="chip-forslag-item ${valgt ? 'valgt' : ''}" onmousedown="${valgt ? 'event.preventDefault()' : `event.preventDefault();leggTilFjellChip(${f.id})`}">
+        <span>${f.navn}${f.hoyde ? ` (${f.hoyde}m)` : ''}</span>
+        <span class="chip-poeng">${valgt ? '✓' : `⭐ ${f.poeng}p`}</span>
+      </div>`;
+    }).join('') || '<div class="chip-forslag-item" style="color:var(--tekst-dim);">Ingen treff</div>';
+    forslag.classList.add('synlig');
+  });
+
+  vannSøk.addEventListener('input', () => {
+    const q = vannSøk.value.trim().toLowerCase();
+    const forslag = document.getElementById('reg-vann-forslag');
+    if (!q) { forslag.classList.remove('synlig'); return; }
+    const treff = VANN_DATA.filter(v => v.navn.toLowerCase().includes(q)).slice(0, 8);
+    forslag.innerHTML = treff.map(v => {
+      const valgt = valdteVann.includes(v.id);
+      return `<div class="chip-forslag-item ${valgt ? 'valgt' : ''}" onmousedown="${valgt ? 'event.preventDefault()' : `event.preventDefault();leggTilVannChip(${v.id})`}">
+        <span>${v.navn}</span>
+        <span class="chip-poeng">${valgt ? '✓' : `⭐ ${v.poeng}p`}</span>
+      </div>`;
+    }).join('') || '<div class="chip-forslag-item" style="color:var(--tekst-dim);">Ingen treff</div>';
+    forslag.classList.add('synlig');
+  });
+
+  // Lukk forslag ved klikk utenfor
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.chip-søk-wrapper')) {
+      document.querySelectorAll('.chip-forslag').forEach(f => f.classList.remove('synlig'));
+    }
+  });
+}
+
+function leggTilFjellChip(id) {
+  if (valgteFjell.includes(id)) return;
+  valgteFjell.push(id);
+  renderChips();
+  const søk = document.getElementById('reg-fjell-søk');
+  if (søk) { søk.value = ''; søk.dispatchEvent(new Event('input')); }
+}
+
+function fjernFjellChip(id) {
+  valgteFjell = valgteFjell.filter(x => x !== id);
+  renderChips();
+}
+
+function leggTilVannChip(id) {
+  if (valdteVann.includes(id)) return;
+  valdteVann.push(id);
+  renderChips();
+  const søk = document.getElementById('reg-vann-søk');
+  if (søk) { søk.value = ''; søk.dispatchEvent(new Event('input')); }
+}
+
+function fjernVannChip(id) {
+  valdteVann = valdteVann.filter(x => x !== id);
+  renderChips();
+}
+
+function renderChips() {
+  const fjellContainer = document.getElementById('reg-fjell-valgte');
+  const vannContainer  = document.getElementById('reg-vann-valgte');
+  if (fjellContainer) {
+    fjellContainer.innerHTML = valgteFjell.map(id => {
+      const f = FJELL_DATA.find(x => x.id === id);
+      return f ? `<div class="venn-chip">
+        <span>⛰ ${f.navn}</span>
+        <button type="button" onclick="fjernFjellChip(${id})">×</button>
+      </div>` : '';
+    }).join('');
   }
+  if (vannContainer) {
+    vannContainer.innerHTML = valdteVann.map(id => {
+      const v = VANN_DATA.find(x => x.id === id);
+      return v ? `<div class="venn-chip" style="background:var(--vann-bg);border-color:rgba(44,110,138,0.25);color:var(--vann);">
+        <span>🌊 ${v.navn}</span>
+        <button type="button" onclick="fjernVannChip(${id})">×</button>
+      </div>` : '';
+    }).join('');
+  }
+}
+
+// Populer admin-selecter (waypoints mm.)
+function populerSelects() {
+  // Brukes nå kun for waypoints i turleder — chip-velger håndterer registrering
 }
 
 // ===== FJELL LISTE =====
@@ -291,7 +439,7 @@ function visFlerefjell() {
 function skjulFjell() {
   fjellVis = 6;
   renderFjellListe(document.getElementById('fjell-filter')?.value || '');
-  document.getElementById('fjell-liste')?.scrollIntoView({ behavior: 'smooth' });
+  window.scrollTo({ top: 0 });
 }
 
 // ===== VANN LISTE =====
@@ -354,13 +502,28 @@ function visFlereVann() {
 function skjulVann() {
   vannVis = 6;
   renderVannListe();
-  document.getElementById('vann-liste')?.scrollIntoView({ behavior: 'smooth' });
+  window.scrollTo({ top: 0 });
 }
 
 // ===== SCOREBOARD =====
 function renderScoreboard() {
   renderFjellScoreboard();
   renderVannScoreboard();
+  renderHytteScoreboard();
+}
+
+// Hjelp: finn hytte for bruker fra brukerlista
+function hytteTilBruker(brukerNavn) {
+  return hentBrukere().find(b => b.navn === brukerNavn)?.hytte || '';
+}
+
+function lagScoreAvatar(brukerNavn) {
+  const bruker = hentBrukere().find(b => b.navn === brukerNavn);
+  if (bruker?.bilde) {
+    return `<div class="score-avatar"><img src="${bruker.bilde}" alt="${brukerNavn}"></div>`;
+  }
+  const initial = brukerNavn.charAt(0).toUpperCase();
+  return `<div class="score-avatar">${initial}</div>`;
 }
 
 function renderFjellScoreboard() {
@@ -369,38 +532,44 @@ function renderFjellScoreboard() {
 
   const poengPerBruker = {};
 
-  state.logger
-    .filter(l => l.type === 'fjell')
-    .forEach(l => {
+  state.logger.forEach(l => {
+    if (l.type === 'fjell') {
       const fjell = FJELL_DATA.find(f => f.id === l.id);
       if (!fjell) return;
-      if (!poengPerBruker[l.bruker]) {
-        poengPerBruker[l.bruker] = { poeng: 0, fjell: new Set() };
-      }
+      if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, fjell: new Set() };
       poengPerBruker[l.bruker].fjell.add(l.id);
       poengPerBruker[l.bruker].poeng += fjell.poeng;
-    });
+    } else if (l.type === 'tur' && l.fjell?.length) {
+      if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, fjell: new Set() };
+      l.fjell.forEach(id => {
+        const fjell = FJELL_DATA.find(f => f.id === id);
+        if (fjell) { poengPerBruker[l.bruker].fjell.add(id); poengPerBruker[l.bruker].poeng += fjell.poeng; }
+      });
+    }
+  });
 
-  const sorted = Object.entries(poengPerBruker)
-    .sort((a, b) => b[1].poeng - a[1].poeng);
+  const sorted = Object.entries(poengPerBruker).sort((a, b) => b[1].poeng - a[1].poeng);
 
   if (sorted.length === 0) {
     container.innerHTML = '<li class="tom-melding">Ingen registrerte fjellbesøk ennå.<br>Vær den første! 🏔️</li>';
     return;
   }
 
-  container.innerHTML = sorted.map(([navn, data], idx) => `
+  container.innerHTML = sorted.map(([navn, data], idx) => {
+    const hytte = hytteTilBruker(navn);
+    const medalje = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
+    return `
     <li class="score-item">
-      <div class="score-rank ${idx === 0 ? 'pos-1' : idx === 1 ? 'pos-2' : idx === 2 ? 'pos-3' : ''}">
-        ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
-      </div>
+      <div class="score-rank ${idx < 3 ? `pos-${idx+1}` : ''}">${medalje}</div>
+      ${lagScoreAvatar(navn)}
       <div class="score-info">
         <div class="score-navn">${navn}</div>
-        <div class="score-detaljer">⛰ ${data.fjell.size} fjell besteiget</div>
+        ${hytte ? `<div class="score-hytte">🏠 ${hytte}</div>` : ''}
+        <div class="score-detaljer">⛰ ${data.fjell.size} fjell</div>
       </div>
       <div class="score-poeng">${data.poeng}p</div>
-    </li>
-  `).join('');
+    </li>`;
+  }).join('');
 }
 
 function renderVannScoreboard() {
@@ -409,34 +578,75 @@ function renderVannScoreboard() {
 
   const poengPerBruker = {};
 
-  state.logger
-    .filter(l => l.type === 'vann')
-    .forEach(l => {
+  state.logger.forEach(l => {
+    if (l.type === 'vann') {
       const vann = VANN_DATA.find(v => v.id === l.id);
       if (!vann) return;
-      if (!poengPerBruker[l.bruker]) {
-        poengPerBruker[l.bruker] = { poeng: 0, vann: new Set() };
-      }
+      if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, vann: new Set() };
       poengPerBruker[l.bruker].vann.add(l.id);
       poengPerBruker[l.bruker].poeng += vann.poeng;
-    });
+    } else if (l.type === 'tur' && l.vann?.length) {
+      if (!poengPerBruker[l.bruker]) poengPerBruker[l.bruker] = { poeng: 0, vann: new Set() };
+      l.vann.forEach(id => {
+        const vann = VANN_DATA.find(v => v.id === id);
+        if (vann) { poengPerBruker[l.bruker].vann.add(id); poengPerBruker[l.bruker].poeng += vann.poeng; }
+      });
+    }
+  });
 
-  const sorted = Object.entries(poengPerBruker)
-    .sort((a, b) => b[1].poeng - a[1].poeng);
+  const sorted = Object.entries(poengPerBruker).sort((a, b) => b[1].poeng - a[1].poeng);
 
   if (sorted.length === 0) {
     container.innerHTML = '<li class="tom-melding">Ingen registrerte bad ennå.<br>Hopp i vannet! 🏊</li>';
     return;
   }
 
-  container.innerHTML = sorted.map(([navn, data], idx) => `
+  container.innerHTML = sorted.map(([navn, data], idx) => {
+    const hytte = hytteTilBruker(navn);
+    const medalje = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1;
+    return `
+    <li class="score-item">
+      <div class="score-rank ${idx < 3 ? `pos-${idx+1}` : ''}">${medalje}</div>
+      ${lagScoreAvatar(navn)}
+      <div class="score-info">
+        <div class="score-navn">${navn}</div>
+        ${hytte ? `<div class="score-hytte">🏠 ${hytte}</div>` : ''}
+        <div class="score-detaljer">🌊 ${data.vann.size} vann</div>
+      </div>
+      <div class="score-poeng">${data.poeng}p</div>
+    </li>`;
+  }).join('');
+}
+
+function renderHytteScoreboard() {
+  const container = document.getElementById('hytte-scoreboard');
+  if (!container) return;
+
+  const poengPerHytte = {};
+
+  state.logger.forEach(l => {
+    const hytte = l.hytte || hytteTilBruker(l.bruker);
+    if (!hytte) return;
+    if (!poengPerHytte[hytte]) poengPerHytte[hytte] = { poeng: 0, brukere: new Set() };
+    poengPerHytte[hytte].poeng += (l.poeng || 0);
+    if (l.bruker) poengPerHytte[hytte].brukere.add(l.bruker);
+  });
+
+  const sorted = Object.entries(poengPerHytte).sort((a, b) => b[1].poeng - a[1].poeng);
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<li class="tom-melding">Ingen hytter med poeng ennå.</li>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(([hytte, data], idx) => `
     <li class="score-item">
       <div class="score-rank ${idx === 0 ? 'pos-1' : idx === 1 ? 'pos-2' : idx === 2 ? 'pos-3' : ''}">
         ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
       </div>
       <div class="score-info">
-        <div class="score-navn">${navn}</div>
-        <div class="score-detaljer">🌊 ${data.vann.size} vann badet i</div>
+        <div class="score-navn">🏠 ${hytte}</div>
+        <div class="score-detaljer">👥 ${data.brukere.size} ${data.brukere.size === 1 ? 'person' : 'personer'}</div>
       </div>
       <div class="score-poeng">${data.poeng}p</div>
     </li>
@@ -459,6 +669,25 @@ function renderMineTurer() {
   }
 
   container.innerHTML = sortert.map(logg => {
+    if (logg.type === 'tur') {
+      const fjellNavn = (logg.fjell || []).map(id => FJELL_DATA.find(f => f.id === id)?.navn).filter(Boolean);
+      const vannNavn = (logg.vann || []).map(id => VANN_DATA.find(v => v.id === id)?.navn).filter(Boolean);
+      const deler = [
+        fjellNavn.length ? `⛰ ${fjellNavn.join(', ')}` : '',
+        vannNavn.length ? `🌊 ${vannNavn.join(', ')}` : ''
+      ].filter(Boolean);
+      return `
+      <div class="tur-card">
+        <div class="tur-type">🎒 Tur</div>
+        <div class="tur-navn">${deler.join(' · ') || 'Tom tur'}</div>
+        <div class="tur-meta">
+          👤 ${logg.bruker}${logg.hytte ? ` · 🏠 ${logg.hytte}` : ''} &nbsp;|&nbsp; 📅 ${formaterDato(logg.dato)} &nbsp;|&nbsp; ⭐ ${logg.poeng} poeng
+        </div>
+        ${logg.notat ? `<div class="tur-notat">"${logg.notat}"</div>` : ''}
+      </div>`;
+    }
+
+    // Gammelt format
     const erFjell = logg.type === 'fjell';
     const item = erFjell
       ? FJELL_DATA.find(f => f.id === logg.id)
@@ -479,8 +708,18 @@ function renderMineTurer() {
 
 // ===== HERO STATS =====
 function oppdaterHeroStats() {
-  const besøkteFjell = new Set(state.logger.filter(l => l.type === 'fjell').map(l => l.id)).size;
-  const badedeVann = new Set(state.logger.filter(l => l.type === 'vann').map(l => l.id)).size;
+  const fjellIds = new Set();
+  const vannIds = new Set();
+  state.logger.forEach(l => {
+    if (l.type === 'fjell') fjellIds.add(l.id);
+    else if (l.type === 'vann') vannIds.add(l.id);
+    else if (l.type === 'tur') {
+      l.fjell?.forEach(id => fjellIds.add(id));
+      l.vann?.forEach(id => vannIds.add(id));
+    }
+  });
+  const besøkteFjell = fjellIds.size;
+  const badedeVann = vannIds.size;
   const totPoeng = state.logger.reduce((sum, l) => sum + (l.poeng || 0), 0);
 
   const elFjell = document.getElementById('stat-fjell');
@@ -494,88 +733,52 @@ function oppdaterHeroStats() {
 
 // ===== REGISTRERING =====
 function åpneRegistrerFjell(id) {
-  const fjellEl = document.getElementById('reg-fjell-select');
-  if (fjellEl) {
-    fjellEl.value = id;
-    byttTab('fjell');
-  }
-  document.getElementById('registrer').scrollIntoView({ behavior: 'smooth' });
+  leggTilFjellChip(id);
+  navigerTil('registrer');
 }
 
 function åpneRegistrerVann(id) {
-  const vannEl = document.getElementById('reg-vann-select');
-  if (vannEl) {
-    vannEl.value = id;
-    byttTab('vann');
+  leggTilVannChip(id);
+  navigerTil('registrer');
+}
+
+function registrerTur(e) {
+  e.preventDefault();
+  const bruker = hentAktivBruker();
+  if (!bruker) { alert('Du må være logget inn for å registrere tur.'); return; }
+
+  const dato = document.getElementById('reg-tur-dato').value;
+  const notat = document.getElementById('reg-tur-notat').value.trim();
+
+  if (!dato) { alert('Velg dato.'); return; }
+  if (!valgteFjell.length && !valdteVann.length) {
+    alert('Legg til minst ett fjell eller vann.'); return;
   }
-  document.getElementById('registrer').scrollIntoView({ behavior: 'smooth' });
-}
 
-function byttTab(tab) {
-  state.aktiveTab = tab;
-  document.querySelectorAll('.reg-tab').forEach(t => {
-    t.classList.toggle('aktiv', t.dataset.tab === tab);
-  });
-  document.querySelectorAll('.form-panel').forEach(p => {
-    p.classList.toggle('aktiv', p.dataset.panel === tab);
-  });
-}
-
-function registrerFjell(e) {
-  e.preventDefault();
-  const form = e.target;
-  const fjellId = parseInt(form.querySelector('#reg-fjell-select').value);
-  const bruker = form.querySelector('#reg-fjell-bruker').value.trim();
-  const dato = form.querySelector('#reg-fjell-dato').value;
-  const notat = form.querySelector('#reg-fjell-notat').value.trim();
-
-  if (!fjellId || !bruker || !dato) return;
-
-  const fjell = FJELL_DATA.find(f => f.id === fjellId);
-  if (!fjell) return;
+  let totPoeng = 0;
+  valgteFjell.forEach(id => { const f = FJELL_DATA.find(x => x.id === id); if (f) totPoeng += f.poeng; });
+  valdteVann.forEach(id => { const v = VANN_DATA.find(x => x.id === id); if (v) totPoeng += v.poeng; });
 
   state.logger.push({
-    id: fjellId,
-    type: 'fjell',
-    bruker,
+    type: 'tur',
+    bruker: bruker.navn,
+    hytte: bruker.hytte || '',
     dato,
     notat,
-    poeng: fjell.poeng,
+    fjell: [...valgteFjell],
+    vann: [...valdteVann],
+    poeng: totPoeng,
     tidspunkt: Date.now()
   });
 
   lagreData();
-  visSuccessMelding('fjell');
-  form.reset();
-  oppdaterAlt();
-}
+  visSuccessMelding('tur');
 
-function registrerVann(e) {
-  e.preventDefault();
-  const form = e.target;
-  const vannId = parseInt(form.querySelector('#reg-vann-select').value);
-  const bruker = form.querySelector('#reg-vann-bruker').value.trim();
-  const dato = form.querySelector('#reg-vann-dato').value;
-  const notat = form.querySelector('#reg-vann-notat').value.trim();
-
-  if (!vannId || !bruker || !dato) return;
-
-  const vann = VANN_DATA.find(v => v.id === vannId);
-  if (!vann) return;
-
-  state.logger.push({
-    id: vannId,
-    type: 'vann',
-    bruker,
-    dato,
-    notat,
-    poeng: vann.poeng,
-    tidspunkt: Date.now()
-  });
-
-  lagreData();
-  visSuccessMelding('vann');
-  form.reset();
+  // Reset
+  valgteFjell = [];
+  valdteVann = [];
+  renderChips();
+  document.getElementById('reg-tur-notat').value = '';
   oppdaterAlt();
 }
 
@@ -607,19 +810,31 @@ function initKartMarkorer() {
 
 // ===== HELPERS =====
 function erFjellBesøkt(id) {
-  return state.logger.some(l => l.type === 'fjell' && l.id === id);
+  return state.logger.some(l =>
+    (l.type === 'fjell' && l.id === id) ||
+    (l.type === 'tur' && l.fjell?.includes(id))
+  );
 }
 
 function erVannBadet(id) {
-  return state.logger.some(l => l.type === 'vann' && l.id === id);
+  return state.logger.some(l =>
+    (l.type === 'vann' && l.id === id) ||
+    (l.type === 'tur' && l.vann?.includes(id))
+  );
 }
 
 function antallBesøkFjell(id) {
-  return state.logger.filter(l => l.type === 'fjell' && l.id === id).length;
+  return state.logger.filter(l =>
+    (l.type === 'fjell' && l.id === id) ||
+    (l.type === 'tur' && l.fjell?.includes(id))
+  ).length;
 }
 
 function antallBadVann(id) {
-  return state.logger.filter(l => l.type === 'vann' && l.id === id).length;
+  return state.logger.filter(l =>
+    (l.type === 'vann' && l.id === id) ||
+    (l.type === 'tur' && l.vann?.includes(id))
+  ).length;
 }
 
 function formaterDato(dato) {
@@ -646,7 +861,7 @@ function renderAdminFjellListe() {
       </div>
       <div class="admin-item-btns">
         <button class="btn-edit" onclick="åpneEditFjell(${f.id})">Rediger</button>
-        ${erEgetFjell(f.id) ? `<button class="btn-slett" onclick="slettEgetFjell(${f.id})">Slett</button>` : ''}
+        <button class="btn-slett" onclick="slettFjell(${f.id})">Slett</button>
       </div>
     </div>
   `).join('');
@@ -663,7 +878,7 @@ function renderAdminVannListe() {
       </div>
       <div class="admin-item-btns">
         <button class="btn-edit" onclick="åpneEditVann(${v.id})">Rediger</button>
-        ${erEgetVann(v.id) ? `<button class="btn-slett" onclick="slettEgetVann(${v.id})">Slett</button>` : ''}
+        <button class="btn-slett" onclick="slettVann(${v.id})">Slett</button>
       </div>
     </div>
   `).join('');
@@ -735,25 +950,41 @@ function leggTilVann(e) {
 }
 
 // ===== ADMIN: SLETT =====
-function slettEgetFjell(id) {
-  if (!confirm('Slette denne toppen?')) return;
-  const egne = hentEgneFjell().filter(f => f.id !== id);
-  lagreEgneFjell(egne);
+function slettFjell(id) {
+  if (!confirm('Slette denne toppen? Dette kan ikke angres.')) return;
+
+  // Fjern fra egne hvis det er et eget fjell
+  if (erEgetFjell(id)) {
+    lagreEgneFjell(hentEgneFjell().filter(f => f.id !== id));
+  }
+
+  // Legg til i slettede-lista (for innebygde)
+  const slettede = JSON.parse(localStorage.getItem('lifjell_slettede_fjell') || '[]');
+  if (!slettede.includes(id)) { slettede.push(id); localStorage.setItem('lifjell_slettede_fjell', JSON.stringify(slettede)); }
+
   const idx = FJELL_DATA.findIndex(f => f.id === id);
   if (idx !== -1) FJELL_DATA.splice(idx, 1);
-  populerSelects();
+
+  populerChipVelgere();
   renderAdminFjellListe();
   renderFjellListe();
   if (kart && fjellMarkers[id]) { kart.removeLayer(fjellMarkers[id]); delete fjellMarkers[id]; }
 }
 
-function slettEgetVann(id) {
-  if (!confirm('Slette dette vannet?')) return;
-  const egne = hentEgneVann().filter(v => v.id !== id);
-  lagreEgneVann(egne);
+function slettVann(id) {
+  if (!confirm('Slette dette vannet? Dette kan ikke angres.')) return;
+
+  if (erEgetVann(id)) {
+    lagreEgneVann(hentEgneVann().filter(v => v.id !== id));
+  }
+
+  const slettede = JSON.parse(localStorage.getItem('lifjell_slettede_vann') || '[]');
+  if (!slettede.includes(id)) { slettede.push(id); localStorage.setItem('lifjell_slettede_vann', JSON.stringify(slettede)); }
+
   const idx = VANN_DATA.findIndex(v => v.id === id);
   if (idx !== -1) VANN_DATA.splice(idx, 1);
-  populerSelects();
+
+  populerChipVelgere();
   renderAdminVannListe();
   renderVannListe();
   if (kart && vannMarkers[id]) { kart.removeLayer(vannMarkers[id]); delete vannMarkers[id]; }
@@ -855,13 +1086,13 @@ function visPåKart(type, id) {
   const marker = type === 'fjell' ? fjellMarkers[id] : vannMarkers[id];
   if (!marker) return;
 
-  document.getElementById('kart').scrollIntoView({ behavior: 'smooth' });
+  navigerTil('kart');
 
-  // Gi scroll tid til å lande, flytt så kartet og åpne popup
+  // Gi kartet tid til å bli synlig, flytt så til markøren
   setTimeout(() => {
     kart.flyTo(marker.getLatLng(), 14, { duration: 1.2 });
     setTimeout(() => marker.openPopup(), 1300);
-  }, 400);
+  }, 100);
 }
 
 // ===== KART HJELPEFUNKSJONER =====
@@ -889,167 +1120,6 @@ function leggTilVannMarkør(vann) {
     .addTo(vannLag).bindPopup(lagVannPopup(vann), { maxWidth: 260 });
 }
 
-// ===== RUTER FRA UT.NO =====
-let ruterKart = null;
-let ruterRuteLag = null;
-let aktivRuteId = null;
-const ruterCache = [];
-
-const GRADERING_NORSK = {
-  EASY: 'Enkel',
-  MODERATE: 'Moderat',
-  TOUGH: 'Krevende',
-  VERY_TOUGH: 'Svært krevende',
-  VERY_EASY: 'Svært enkel'
-};
-
-const GRADERING_KLASSE = {
-  EASY: 'grad-easy',
-  MODERATE: 'grad-moderate',
-  TOUGH: 'grad-tough',
-  VERY_TOUGH: 'grad-very-tough',
-  VERY_EASY: 'grad-easy'
-};
-
-function initRuterKart() {
-  if (ruterKart) return;
-  ruterKart = L.map('ruter-kart', {
-    center: [59.515, 8.880],
-    zoom: 11,
-    minZoom: 8,
-    maxZoom: 17
-  });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap | Ruter: ut.no / Nasjonal Turbase', maxZoom: 19
-  }).addTo(ruterKart);
-  ruterRuteLag = L.layerGroup().addTo(ruterKart);
-}
-
-async function hentRuter() {
-  initRuterKart();
-
-  const liste = document.getElementById('ruter-liste');
-  liste.innerHTML = `<div class="ruter-laster"><div class="spinner" style="width:20px;height:20px;"></div> Henter ruter fra ut.no…</div>`;
-
-  const query = `{
-    ntb_findRoutesNear(coordinates: [8.86, 59.515], distance: 25000) {
-      edges {
-        node {
-          id
-          name
-          grading
-          distance
-          elevationGain
-          geometry
-        }
-        distance
-      }
-    }
-  }`;
-
-  try {
-    const res = await fetch('https://api.ut.no/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
-      signal: AbortSignal.timeout(15000)
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    const edges = json?.data?.ntb_findRoutesNear?.edges;
-
-    if (!edges?.length) {
-      liste.innerHTML = `<div class="ruter-feil">Ingen ruter funnet i området.</div>`;
-      return;
-    }
-
-    ruterCache.length = 0;
-    edges.forEach(e => ruterCache.push({ ...e.node, fravær: Math.round(e.distance / 1000) }));
-
-    renderRuterListe();
-  } catch (err) {
-    liste.innerHTML = `<div class="ruter-feil">Kunne ikke hente ruter fra ut.no. Sjekk internettforbindelsen og prøv igjen.</div>`;
-  }
-}
-
-function renderRuterListe() {
-  const liste = document.getElementById('ruter-liste');
-
-  if (!ruterCache.length) {
-    liste.innerHTML = `<div class="ruter-feil">Ingen ruter.</div>`;
-    return;
-  }
-
-  liste.innerHTML = ruterCache.map(r => {
-    const gradKlasse = GRADERING_KLASSE[r.grading] || 'grad-moderate';
-    const gradNorsk = GRADERING_NORSK[r.grading] || r.grading;
-    const dist = r.distance ? (r.distance / 1000).toFixed(1) + ' km' : '—';
-    const høyde = r.elevationGain ? `+${Math.round(r.elevationGain)} m` : '';
-    return `
-      <div class="rute-kort ${gradKlasse} ${aktivRuteId === r.id ? 'aktiv' : ''}" onclick="visRute('${r.id}')">
-        <div class="rute-navn">${r.name || 'Ukjent rute'}</div>
-        <div class="rute-meta">
-          <span class="rute-gradering">${gradNorsk}</span>
-          <span class="rute-detalj">📏 ${dist}</span>
-          ${høyde ? `<span class="rute-detalj">⬆ ${høyde}</span>` : ''}
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function visRute(id) {
-  aktivRuteId = id;
-  renderRuterListe();
-
-  const rute = ruterCache.find(r => r.id === id);
-  if (!rute?.geometry?.coordinates?.length) return;
-
-  ruterRuteLag.clearLayers();
-
-  // Geometry er GeoJSON LineString: [lng, lat, elev]
-  const coords = rute.geometry.coordinates.map(c => [c[1], c[0]]);
-
-  const polyline = L.polyline(coords, {
-    color: '#3a7a4a',
-    weight: 4,
-    opacity: 0.9
-  }).addTo(ruterRuteLag);
-
-  // Start- og endepunkt-markører
-  const mkrStart = L.divIcon({
-    className: '',
-    html: `<div style="background:#3a7a4a;color:#fff;border:2px solid white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.3);">S</div>`,
-    iconSize: [24, 24], iconAnchor: [12, 12]
-  });
-  const mkrMal = L.divIcon({
-    className: '',
-    html: `<div style="background:#b04040;color:#fff;border:2px solid white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,0.3);">M</div>`,
-    iconSize: [24, 24], iconAnchor: [12, 12]
-  });
-
-  L.marker(coords[0], { icon: mkrStart }).addTo(ruterRuteLag);
-  L.marker(coords[coords.length - 1], { icon: mkrMal }).addTo(ruterRuteLag);
-
-  ruterKart.fitBounds(polyline.getBounds(), { padding: [24, 24] });
-
-  // Info-panel
-  const gradNorsk = GRADERING_NORSK[rute.grading] || rute.grading || '—';
-  const dist = rute.distance ? (rute.distance / 1000).toFixed(1) + ' km' : '—';
-  const høyde = rute.elevationGain ? `+${Math.round(rute.elevationGain)} m` : '—';
-
-  const infoEl = document.getElementById('ruter-kart-info');
-  infoEl.style.display = 'block';
-  infoEl.innerHTML = `
-    <h3>${rute.name || 'Ukjent rute'}</h3>
-    <div class="rute-stats">
-      <div class="rute-stat"><span class="tal">${dist}</span><span class="etikett">Avstand</span></div>
-      <div class="rute-stat"><span class="tal">${høyde}</span><span class="etikett">Stigning</span></div>
-      <div class="rute-stat"><span class="tal">${gradNorsk}</span><span class="etikett">Vanskelighet</span></div>
-    </div>
-    <p style="margin-top:0.5rem;"><a href="https://www.ut.no/tur/${rute.id}/" target="_blank" rel="noopener" style="color:var(--is);font-size:0.82rem;font-weight:600;">→ Se full beskrivelse på ut.no</a></p>
-  `;
-}
 
 // ===== TURLEDER =====
 let turlederKart = null;
@@ -1504,16 +1574,54 @@ function bindEvents() {
   const filterInput = document.getElementById('fjell-filter');
   if (filterInput) filterInput.addEventListener('input', e => renderFjellListe(e.target.value));
 
-  // Tabs i registreringsskjema
-  document.querySelectorAll('.reg-tab').forEach(tab => {
-    tab.addEventListener('click', () => byttTab(tab.dataset.tab));
+  // Tur-registreringsskjema
+  const turForm = document.getElementById('form-tur');
+  if (turForm) turForm.addEventListener('submit', registrerTur);
+
+  // Login-tabs
+  document.querySelectorAll('.login-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('aktiv'));
+      document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('aktiv'));
+      tab.classList.add('aktiv');
+      document.querySelector(`.login-panel[data-lpanel="${tab.dataset.ltab}"]`)?.classList.add('aktiv');
+    });
   });
 
-  // Registreringsskjemaer
-  const fjellForm = document.getElementById('form-fjell');
-  if (fjellForm) fjellForm.addEventListener('submit', registrerFjell);
-  const vannForm = document.getElementById('form-vann');
-  if (vannForm) vannForm.addEventListener('submit', registrerVann);
+  // Login-skjema
+  document.getElementById('form-logg-inn')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const navn = document.getElementById('login-navn').value.trim();
+    const passord = document.getElementById('login-passord').value;
+    const feil = document.getElementById('login-feil');
+    const ok = loggInn(navn, passord);
+    if (!ok) {
+      feil.textContent = 'Feil navn eller passord.';
+      feil.style.display = '';
+    } else {
+      feil.style.display = 'none';
+    }
+  });
+
+  // Ny bruker-skjema
+  document.getElementById('form-ny-bruker')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const navn = document.getElementById('ny-navn').value.trim();
+    const passord = document.getElementById('ny-passord').value;
+    const passord2 = document.getElementById('ny-passord2').value;
+    const alder = parseInt(document.getElementById('ny-alder').value) || null;
+    const hytte = document.getElementById('ny-hytte').value.trim();
+    const feil = document.getElementById('ny-bruker-feil');
+
+    if (!navn) { feil.textContent = 'Navn er påkrevd.'; feil.style.display = ''; return; }
+    if (passord.length < 4) { feil.textContent = 'Passordet må være minst 4 tegn.'; feil.style.display = ''; return; }
+    if (passord !== passord2) { feil.textContent = 'Passordene stemmer ikke overens.'; feil.style.display = ''; return; }
+    if (hentBrukere().some(b => b.navn.toLowerCase() === navn.toLowerCase())) {
+      feil.textContent = 'Det finnes allerede en bruker med dette navnet.'; feil.style.display = ''; return;
+    }
+    feil.style.display = 'none';
+    opprettBruker(navn, passord, alder, hytte);
+  });
 
   // Admin tabs
   document.querySelectorAll('.admin-tab').forEach(tab => {
@@ -1555,12 +1663,12 @@ function bindEvents() {
   const idag = new Date().toISOString().split('T')[0];
   datoInputs.forEach(input => input.value = idag);
 
-  // Smooth scroll for nav-linker + lukk mobil-meny ved klikk
+  // Navigasjon for alle href="#..."-lenker
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      const href = a.getAttribute('href').slice(1);
+      navigerTil(href);
       // Lukk hamburger-meny på mobil
       document.getElementById('nav-links')?.classList.remove('open');
       document.getElementById('nav-hamburger')?.classList.remove('open');
@@ -1605,4 +1713,345 @@ function bindEvents() {
       innhold.style.display = '';
     }
   }
+
+  // Profilbilde-opplasting
+  const bildeInput = document.getElementById('profil-bilde-input');
+  if (bildeInput) {
+    bildeInput.addEventListener('change', e => {
+      const fil = e.target.files[0];
+      if (!fil) return;
+      komprimerBilde(fil, 200, base64 => {
+        const container = document.getElementById('profil-bilde-container');
+        if (container) container.innerHTML = `<img src="${base64}" alt="Profilbilde">`;
+        const bruker = hentAktivBruker();
+        if (bruker) {
+          bruker.bilde = base64;
+          lagreBrukere(hentBrukere().map(b => b.id === bruker.id ? bruker : b));
+          oppdaterNavBruker();
+        }
+      });
+    });
+  }
+
+  // Legg til venn ved Enter-tast
+  const nyVennInput = document.getElementById('ny-venn-input');
+  if (nyVennInput) {
+    nyVennInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); leggTilVenn(); }
+    });
+  }
+}
+
+// ===== BRUKERKONTO =====
+function hentBrukere() {
+  return JSON.parse(localStorage.getItem('lifjell_brukere') || '[]');
+}
+
+function lagreBrukere(liste) {
+  localStorage.setItem('lifjell_brukere', JSON.stringify(liste));
+}
+
+function hentAktivBruker() {
+  const id = localStorage.getItem('lifjell_aktiv_bruker');
+  if (!id) return null;
+  return hentBrukere().find(b => b.id === id) || null;
+}
+
+function opprettBruker(navn, passord, alder, hytte) {
+  const brukere = hentBrukere();
+  const nyBruker = {
+    id: Date.now().toString(),
+    navn, passord, alder: alder || null,
+    hytte: hytte || '',
+    bilde: null, venner: [], herErVi: null,
+    opprettet: new Date().toISOString()
+  };
+  brukere.push(nyBruker);
+  lagreBrukere(brukere);
+  localStorage.setItem('lifjell_aktiv_bruker', nyBruker.id);
+  etterInnlogging();
+}
+
+function loggInn(navn, passord) {
+  const bruker = hentBrukere().find(
+    b => b.navn.toLowerCase() === navn.toLowerCase() && b.passord === passord
+  );
+  if (!bruker) return false;
+  localStorage.setItem('lifjell_aktiv_bruker', bruker.id);
+  etterInnlogging();
+  return true;
+}
+
+function loggUt() {
+  localStorage.removeItem('lifjell_aktiv_bruker');
+  document.getElementById('nav-bruker').style.display = 'none';
+  // Tilbake til scroll-modus
+  document.body.classList.remove('panel-aktiv');
+  PANEL_SEKSJONER.forEach(sid => document.getElementById(sid)?.classList.remove('aktiv-side'));
+  document.getElementById('login-modal').classList.remove('skjult');
+  // Reset login-form
+  document.getElementById('form-logg-inn')?.reset();
+  document.getElementById('form-ny-bruker')?.reset();
+}
+
+function etterInnlogging() {
+  document.getElementById('login-modal').classList.add('skjult');
+  oppdaterNavBruker();
+  lastProfil();
+  initProfilKart();
+  oppdaterRegBrukerInfo();
+
+  const startHash = window.location.hash.slice(1);
+  navigerTil(ALLE_SEKSJONER.includes(startHash) ? startHash : 'hero');
+}
+
+function sjekkInnlogging() {
+  const bruker = hentAktivBruker();
+  if (bruker) {
+    etterInnlogging();
+  } else {
+    document.getElementById('login-modal').classList.remove('skjult');
+  }
+}
+
+function oppdaterNavBruker() {
+  const bruker = hentAktivBruker();
+  const navBruker = document.getElementById('nav-bruker');
+  if (!bruker || !navBruker) return;
+  navBruker.style.display = 'flex';
+  document.getElementById('nav-navn').textContent = bruker.navn;
+  const avatar = document.getElementById('nav-avatar');
+  if (bruker.bilde) {
+    avatar.innerHTML = `<img src="${bruker.bilde}" alt="${bruker.navn}">`;
+  } else {
+    avatar.textContent = bruker.navn.charAt(0).toUpperCase();
+  }
+}
+
+function oppdaterRegBrukerInfo() {
+  const bruker = hentAktivBruker();
+  if (!bruker) return;
+  const navnVis = document.getElementById('reg-bruker-navn-vis');
+  const hytteVis = document.getElementById('reg-hytte-vis');
+  if (navnVis) navnVis.textContent = bruker.navn;
+  if (hytteVis) hytteVis.textContent = bruker.hytte ? `· 🏠 ${bruker.hytte}` : '';
+}
+
+// ===== PROFIL (synkronisert med brukerkonto) =====
+function lastProfil() {
+  const bruker = hentAktivBruker();
+  if (!bruker) return;
+
+  if (bruker.herErVi) profilHerErVi = bruker.herErVi;
+
+  const navnEl = document.getElementById('profil-navn');
+  if (navnEl) navnEl.value = bruker.navn || '';
+
+  const alderEl = document.getElementById('profil-alder');
+  if (alderEl && bruker.alder) alderEl.value = bruker.alder;
+
+  const hytteEl = document.getElementById('profil-hytte');
+  if (hytteEl) hytteEl.value = bruker.hytte || '';
+
+  if (bruker.bilde) {
+    const container = document.getElementById('profil-bilde-container');
+    if (container) container.innerHTML = `<img src="${bruker.bilde}" alt="Profilbilde">`;
+  }
+
+  renderVennerListe(bruker.venner || []);
+}
+
+function lagreProfil() {
+  const bruker = hentAktivBruker();
+  if (!bruker) return;
+
+  bruker.navn   = document.getElementById('profil-navn')?.value.trim() || bruker.navn;
+  bruker.alder  = parseInt(document.getElementById('profil-alder')?.value) || null;
+  bruker.hytte  = document.getElementById('profil-hytte')?.value.trim() || '';
+  bruker.herErVi = profilHerErVi;
+
+  const brukere = hentBrukere().map(b => b.id === bruker.id ? bruker : b);
+  lagreBrukere(brukere);
+
+  // Oppdater "Her er vi"-markøren
+  if (herErViMarkør && kart) {
+    herErViMarkør.setLatLng([profilHerErVi.lat, profilHerErVi.lng]);
+    herErViMarkør.setPopupContent(lagHerErViPopup());
+  }
+
+  oppdaterNavBruker();
+  oppdaterRegBrukerInfo();
+
+  const msg = document.getElementById('profil-lagret');
+  if (msg) { msg.style.display = ''; setTimeout(() => msg.style.display = 'none', 2500); }
+}
+
+function lagHerErViPopup() {
+  const bruker = hentAktivBruker();
+  const navn = bruker?.navn || 'Hytte';
+  const hytte = bruker?.hytte ? `<br><span style="color:var(--tekst-dim);font-size:0.8rem;">🏠 ${bruker.hytte}</span>` : '';
+  return `<div style="font-family:'Segoe UI',sans-serif;">
+    <strong>🏕 ${navn}</strong>${hytte}
+    <p style="font-size:0.8rem;color:#555;margin:4px 0 0;">Her er vi</p>
+  </div>`;
+}
+
+function leggTilHerErViMarkør() {
+  if (!kart) return;
+  const ikon = L.divIcon({
+    className: '',
+    html: `<div style="background:#c47c20;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:28px;height:28px;box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:12px;">🏕</span></div>`,
+    iconSize: [28, 28], iconAnchor: [14, 28]
+  });
+  herErViMarkør = L.marker([profilHerErVi.lat, profilHerErVi.lng], { icon: ikon })
+    .addTo(kart)
+    .bindPopup(lagHerErViPopup(), { maxWidth: 220 });
+}
+
+function leggTilVenn() {
+  const input = document.getElementById('ny-venn-input');
+  if (!input) return;
+  const navn = input.value.trim();
+  if (!navn) return;
+
+  const bruker = hentAktivBruker();
+  if (!bruker) return;
+  bruker.venner = bruker.venner || [];
+  if (!bruker.venner.includes(navn)) {
+    bruker.venner.push(navn);
+    lagreBrukere(hentBrukere().map(b => b.id === bruker.id ? bruker : b));
+  }
+
+  renderVennerListe(bruker.venner);
+  input.value = '';
+  input.focus();
+}
+
+function fjernVenn(navn) {
+  const bruker = hentAktivBruker();
+  if (!bruker) return;
+  bruker.venner = (bruker.venner || []).filter(v => v !== navn);
+  lagreBrukere(hentBrukere().map(b => b.id === bruker.id ? bruker : b));
+  renderVennerListe(bruker.venner);
+}
+
+function renderVennerListe(venner) {
+  const container = document.getElementById('venner-liste');
+  if (!container) return;
+  if (!venner || venner.length === 0) {
+    container.innerHTML = '<p class="ingen-venner">Ingen venner lagt til ennå.</p>';
+    return;
+  }
+  container.innerHTML = venner.map(navn => `
+    <div class="venn-chip">
+      <span>👤 ${navn}</span>
+      <button type="button" onclick="fjernVenn('${navn.replace(/'/g, "&#39;")}')">×</button>
+    </div>
+  `).join('');
+}
+
+function initProfilKart() {
+  if (profilKart) return;
+  const el = document.getElementById('profil-kart');
+  if (!el) return;
+
+  profilKart = L.map('profil-kart', {
+    center: [profilHerErVi.lat, profilHerErVi.lng],
+    zoom: 13,
+    maxBounds: L.latLngBounds(L.latLng(59.40, 8.65), L.latLng(59.62, 9.12)),
+    maxBoundsViscosity: 0.9,
+    minZoom: 10,
+    maxZoom: 16
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19
+  }).addTo(profilKart);
+
+  const ikon = L.divIcon({
+    className: '',
+    html: `<div style="background:#e63946;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;box-shadow:0 3px 12px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">📍</span></div>`,
+    iconSize: [32, 32], iconAnchor: [16, 32]
+  });
+
+  profilMarker = L.marker([profilHerErVi.lat, profilHerErVi.lng], { icon: ikon, draggable: true })
+    .addTo(profilKart);
+
+  profilMarker.on('drag', e => {
+    profilHerErVi = {
+      lat: parseFloat(e.latlng.lat.toFixed(5)),
+      lng: parseFloat(e.latlng.lng.toFixed(5))
+    };
+    oppdaterProfilKartHint();
+  });
+
+  // Klikk deaktivert som standard — aktiveres via "Flytt hytte"-knapp
+  profilKart._karteventHandler = e => {
+    const lat = parseFloat(e.latlng.lat.toFixed(5));
+    const lng = parseFloat(e.latlng.lng.toFixed(5));
+    profilHerErVi = { lat, lng };
+    profilMarker.setLatLng([lat, lng]);
+    oppdaterProfilKartHint(true);
+  };
+
+  oppdaterProfilKartHint(false);
+  setTimeout(() => profilKart.invalidateSize(), 100);
+}
+
+function aktiverHytteFlytt() {
+  const kartEl = document.getElementById('profil-kart');
+  kartEl?.classList.remove('profil-kart-låst');
+  kartEl?.classList.add('profil-kart-aktiv');
+  document.getElementById('flytt-hytte-btn').style.display = 'none';
+  document.getElementById('flytt-hytte-ferdig').style.display = '';
+
+  if (profilKart) {
+    profilMarker?.setOpacity(1);
+    profilMarker?.dragging?.enable();
+    profilKart.on('click', profilKart._karteventHandler);
+  }
+  oppdaterProfilKartHint(true);
+}
+
+function deaktiverHytteFlytt() {
+  const kartEl = document.getElementById('profil-kart');
+  kartEl?.classList.add('profil-kart-låst');
+  kartEl?.classList.remove('profil-kart-aktiv');
+  document.getElementById('flytt-hytte-btn').style.display = '';
+  document.getElementById('flytt-hytte-ferdig').style.display = 'none';
+
+  if (profilKart) {
+    profilMarker?.dragging?.disable();
+    profilKart.off('click', profilKart._karteventHandler);
+  }
+  oppdaterProfilKartHint(false);
+}
+
+function oppdaterProfilKartHint(aktiv) {
+  const hint = document.getElementById('profil-kart-hint');
+  if (!hint) return;
+  if (aktiv) {
+    hint.textContent = `📍 Klikk i kartet eller dra markøren for å flytte. Nåværende: ${profilHerErVi.lat.toFixed(4)}°N, ${profilHerErVi.lng.toFixed(4)}°Ø`;
+    hint.style.color = 'var(--is)';
+  } else {
+    hint.textContent = `Nåværende posisjon: ${profilHerErVi.lat.toFixed(4)}°N, ${profilHerErVi.lng.toFixed(4)}°Ø`;
+    hint.style.color = '';
+  }
+}
+
+function komprimerBilde(fil, maxPx, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      callback(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(fil);
 }

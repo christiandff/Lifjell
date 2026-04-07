@@ -42,6 +42,262 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
 
+/* ===== SIDENAVIGASJON ===== */
+@keyframes fadeInn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Paneler (Profil, Admin) skjult som standard */
+#profil, #admin { display: none; }
+#profil.aktiv-side, #admin.aktiv-side {
+  display: block;
+  animation: fadeInn 0.22s ease-out both;
+}
+
+/* Skjul scrollbart innhold når et panel er aktivt */
+body.panel-aktiv #hoved-innhold { display: none; }
+
+/* Hero bruker grid-layout */
+#hero { display: grid; }
+
+/* ===== LOGIN MODAL ===== */
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,35,20,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-modal-overlay.skjult { display: none; }
+
+.login-boks {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--skygge-md);
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  margin: 1rem;
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-logo-ikon { font-size: 2.5rem; display: block; margin-bottom: 0.3rem; }
+.login-logo-tittel {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--is);
+  letter-spacing: -0.5px;
+}
+.login-logo-sub {
+  font-size: 0.8rem;
+  color: var(--tekst-dim);
+  margin-top: 0.2rem;
+}
+
+.login-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--bg-2);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  margin-bottom: 1.5rem;
+}
+
+.login-tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tekst-dim);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.login-tab.aktiv {
+  background: var(--bg-card);
+  color: var(--is);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.login-panel { display: none; }
+.login-panel.aktiv { display: block; }
+
+.login-feil {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #c1121f;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.83rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ===== NAV BRUKER ===== */
+.nav-bruker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.nav-bruker-knapp {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px 4px 4px;
+  border-radius: 50px;
+  transition: background 0.18s;
+}
+
+.nav-bruker-knapp:hover {
+  background: var(--is-lys);
+}
+
+.nav-bruker-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--is);
+  border: 2px solid rgba(58,122,74,0.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+
+.nav-bruker-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nav-bruker-navn {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--is-dim);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-logg-ut {
+  background: none;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  color: var(--tekst-dim);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.nav-logg-ut:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #c1121f;
+}
+
+/* ===== CHIP-VELGER (registrer tur) ===== */
+.chip-søk-wrapper {
+  position: relative;
+}
+
+.chip-forslag {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0; right: 0;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: var(--skygge-md);
+  display: none;
+}
+
+.chip-forslag.synlig { display: block; }
+
+.chip-forslag-item {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.12s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chip-forslag-item:hover { background: var(--is-lys); }
+.chip-forslag-item.valgt { background: var(--bg-2); color: var(--tekst-dim); cursor: default; }
+.chip-forslag-item .chip-poeng { font-size: 0.75rem; color: var(--tekst-dim); }
+
+.chip-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-height: 1rem;
+  padding: 0.4rem 0;
+}
+
+.chip-liste:empty::after {
+  content: 'Ingen valgt ennå';
+  font-size: 0.8rem;
+  color: var(--tekst-dim);
+  font-style: italic;
+}
+
+.reg-tur-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: var(--is-dim);
+  font-weight: 500;
+}
+
+/* ===== HYTTE SCOREBOARD ===== */
+.scoreboard-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.hytte-panel .panel-header {
+  background: linear-gradient(135deg, #7c4a1e, #a0622a);
+}
+
+.score-hytte {
+  font-size: 0.72rem;
+  color: var(--tekst-dim);
+  margin-top: 1px;
+}
+
 /* ===== NAV ===== */
 nav {
   position: fixed;
@@ -85,9 +341,14 @@ nav {
   transition: all 0.18s;
 }
 
-.nav-links a:hover {
+.nav-links a:hover,
+.nav-links a.aktiv {
   color: var(--is);
   background: var(--is-lys);
+}
+
+.nav-links a.aktiv {
+  font-weight: 700;
 }
 
 /* ===== HERO ===== */
@@ -255,8 +516,9 @@ nav {
 
 /* ===== SECTIONS ===== */
 section { padding: 5rem 2rem; }
+#kart, #vann-liste, #scoreboard, #admin { background: var(--bg-2); }
 
-.container { max-width: 1200px; margin: 0 auto; }
+.container { max-width: 1100px; margin: 0 auto; }
 
 .section-header { text-align: center; margin-bottom: 3rem; }
 
@@ -630,27 +892,29 @@ section { padding: 5rem 2rem; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.75rem;
+  padding: 2rem;
+  box-shadow: var(--skygge);
 }
 
-.form-group { margin-bottom: 1rem; }
+.form-group { margin-bottom: 1.1rem; }
 
 .form-group label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--tekst);
-  margin-bottom: 0.4rem;
-  letter-spacing: 0.2px;
+  color: var(--tekst-dim);
+  margin-bottom: 0.45rem;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 .form-group select,
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 10px 13px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  padding: 11px 14px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--tekst);
   font-size: 0.9rem;
@@ -665,15 +929,16 @@ section { padding: 5rem 2rem; }
 .form-group textarea:focus {
   outline: none;
   border-color: var(--is);
-  box-shadow: 0 0 0 3px rgba(58,122,74,0.1);
+  box-shadow: 0 0 0 3px rgba(58,122,74,0.12);
+  background: var(--bg-card);
 }
 
 .form-group input::placeholder,
-.form-group textarea::placeholder { color: var(--tekst-dim); }
+.form-group textarea::placeholder { color: var(--border-2); }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-.btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 0.92rem; margin-top: 0.5rem; }
+.btn-full { width: 100%; justify-content: center; padding: 13px; font-size: 0.92rem; margin-top: 0.75rem; }
 
 .success-msg {
   display: none;
@@ -706,61 +971,86 @@ section { padding: 5rem 2rem; }
 }
 
 .panel-header {
-  background: var(--bg-2);
-  border-bottom: 1px solid var(--border);
-  color: var(--mork);
+  background: linear-gradient(135deg, var(--is-dim) 0%, var(--is) 100%);
+  color: white;
   padding: 1rem 1.4rem;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
-.panel-header.vann-header { border-left: 3px solid var(--vann-lys); }
-.panel-header:not(.vann-header) { border-left: 3px solid var(--grønn); }
+.panel-header.vann-header {
+  background: linear-gradient(135deg, #1e5570, #2c7a98);
+}
 
 .scoreboard-list { list-style: none; }
 
 .score-item {
   display: flex;
   align-items: center;
-  padding: 0.8rem 1.4rem;
+  padding: 0.85rem 1.2rem;
   border-bottom: 1px solid var(--border);
   transition: background 0.15s;
+  gap: 0.85rem;
 }
 
 .score-item:last-child { border-bottom: none; }
-.score-item:hover { background: var(--bg-2); }
+.score-item:hover { background: var(--bg); }
 
 .score-rank {
-  width: 32px; height: 32px;
+  font-size: 1.1rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--tekst-dim);
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+
+.score-rank.pos-1 { color: var(--gull); font-size: 1.2rem; }
+.score-rank.pos-2 { color: var(--solv); font-size: 1.1rem; }
+.score-rank.pos-3 { color: var(--bronse); font-size: 1rem; }
+
+.score-avatar {
+  width: 34px; height: 34px;
   border-radius: 50%;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
+  background: var(--is-lys);
+  border: 1.5px solid rgba(58,122,74,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.85rem;
   font-weight: 800;
-  font-size: 0.8rem;
-  color: var(--tekst-dim);
-  margin-right: 0.9rem;
+  color: var(--is-dim);
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-.score-rank.pos-1 { background: rgba(184,122,16,0.12); border-color: var(--gull); color: var(--gull); }
-.score-rank.pos-2 { background: rgba(122,136,152,0.1); border-color: var(--solv); color: var(--solv); }
-.score-rank.pos-3 { background: rgba(138,84,24,0.1); border-color: var(--bronse); color: var(--bronse); }
+.score-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.score-info { flex: 1; }
-.score-navn { font-weight: 700; font-size: 0.9rem; color: var(--mork); }
-.score-detaljer { font-size: 0.74rem; color: var(--tekst-dim); margin-top: 1px; }
-.score-poeng { font-size: 1rem; font-weight: 900; color: var(--is); }
+.score-info { flex: 1; min-width: 0; }
+.score-navn { font-weight: 700; font-size: 0.88rem; color: var(--mork); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.score-detaljer { font-size: 0.72rem; color: var(--tekst-dim); margin-top: 1px; }
+.score-hytte { font-size: 0.7rem; color: var(--tekst-dim); margin-top: 1px; }
+.score-poeng {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: var(--is);
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.15);
+  padding: 2px 8px;
+  border-radius: 50px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 .tom-melding { padding: 2rem; text-align: center; color: var(--tekst-dim); font-size: 0.86rem; }
 
 /* ===== MINE TURER ===== */
-#mine-turer { background: var(--bg-2); }
+/* #mine-turer handled by alternating backgrounds above */
 
 .mine-logger {
   display: grid;
@@ -793,137 +1083,6 @@ section { padding: 5rem 2rem; }
 .tur-meta { font-size: 0.76rem; color: var(--tekst-dim); margin-bottom: 0.35rem; }
 .tur-notat { font-size: 0.8rem; color: var(--tekst-dim); font-style: italic; }
 
-/* ===== RUTER ===== */
-#ruter { background: var(--bg-2); }
-
-.ruter-wrapper {
-  display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 1.75rem;
-  align-items: start;
-}
-
-.ruter-venstre {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: 620px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.ruter-venstre::-webkit-scrollbar { width: 5px; }
-.ruter-venstre::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }
-
-.ruter-hoyre { position: sticky; top: 72px; }
-
-#ruter-kart {
-  height: 540px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  box-shadow: var(--skygge);
-  overflow: hidden;
-}
-
-.rute-kort {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.1rem;
-  cursor: pointer;
-  transition: all 0.18s;
-  border-left: 3px solid var(--border-2);
-}
-
-.rute-kort:hover { border-color: var(--is); box-shadow: var(--skygge); transform: translateX(2px); }
-.rute-kort.aktiv { border-left-color: var(--is); background: var(--is-lys); }
-
-.rute-kort.grad-easy    { border-left-color: #4a8c5a; }
-.rute-kort.grad-moderate { border-left-color: #3a78a8; }
-.rute-kort.grad-tough   { border-left-color: #c87820; }
-.rute-kort.grad-very-tough { border-left-color: #b04040; }
-
-.rute-navn {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--mork);
-  margin-bottom: 0.4rem;
-  line-height: 1.3;
-}
-
-.rute-meta {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.rute-gradering {
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 8px;
-  border-radius: 50px;
-}
-
-.grad-easy     .rute-gradering { background: #e8f3eb; color: #3a7a4a; }
-.grad-moderate .rute-gradering { background: #e6f0f8; color: #2a5a88; }
-.grad-tough    .rute-gradering { background: #fdf3e6; color: #a06010; }
-.grad-very-tough .rute-gradering { background: #fdf0f0; color: #904040; }
-
-.rute-detalj {
-  font-size: 0.76rem;
-  color: var(--tekst-dim);
-}
-
-.ruter-kart-info {
-  margin-top: 0.75rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.1rem;
-}
-
-.ruter-kart-info h3 { font-size: 0.95rem; font-weight: 700; color: var(--mork); margin-bottom: 0.5rem; }
-
-.rute-stats {
-  display: flex;
-  gap: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.rute-stat { text-align: center; }
-.rute-stat .tal { font-size: 1.1rem; font-weight: 900; color: var(--is); display: block; }
-.rute-stat .etikett { font-size: 0.68rem; color: var(--tekst-dim); text-transform: uppercase; letter-spacing: 0.4px; }
-
-.ruter-laster {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--tekst-dim);
-  font-size: 0.88rem;
-}
-
-.ruter-feil {
-  padding: 1rem;
-  background: #fdf0f0;
-  border: 1px solid #e8c4c4;
-  border-radius: var(--radius);
-  color: #904040;
-  font-size: 0.85rem;
-}
-
-@media (max-width: 900px) {
-  .ruter-wrapper { grid-template-columns: 1fr; }
-  .ruter-hoyre { position: static; }
-  .ruter-venstre { max-height: none; }
-  #ruter-kart { height: 360px; }
-}
 
 /* ===== TURLEDER ===== */
 #turleder { background: var(--bg); }
@@ -1486,6 +1645,187 @@ footer span { color: rgba(120,200,130,0.8); }
 .nav-hamburger.open span:nth-child(2) { opacity: 0; }
 .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
+/* ===== PROFIL ===== */
+.profil-panel-tabs {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--bg-3);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem;
+  margin-bottom: 1.75rem;
+  width: fit-content;
+}
+
+.profil-panel-tab {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1.25rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--tekst-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.profil-panel-tab.aktiv {
+  background: var(--bg-card);
+  color: var(--is);
+  box-shadow: var(--skygge);
+}
+
+.profil-panel { display: none; }
+.profil-panel.aktiv { display: block; }
+
+.profil-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.profil-venstre {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profil-bilde-seksjon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.profil-bilde-ytre {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 3px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+}
+
+.profil-bilde-ytre img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profil-bilde-etikett {
+  cursor: pointer;
+  font-size: 0.83rem;
+}
+
+.venner-input-rad {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.venner-input-rad input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  background: var(--bg-card);
+  color: var(--tekst);
+  transition: border-color 0.18s;
+}
+
+.venner-input-rad input:focus {
+  outline: none;
+  border-color: var(--is);
+}
+
+.venner-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0.5rem 0;
+}
+
+.ingen-venner {
+  font-size: 0.85rem;
+  color: var(--tekst-dim);
+  font-style: italic;
+}
+
+.venn-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--is-lys);
+  border: 1px solid rgba(58,122,74,0.25);
+  color: var(--is-dim);
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.83rem;
+  font-weight: 500;
+}
+
+.venn-chip button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--tekst-dim);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0 0 2px;
+  transition: color 0.15s;
+}
+
+.venn-chip button:hover { color: #c1121f; }
+
+.profil-hoyre {
+  position: sticky;
+  top: 80px;
+}
+
+#profil-kart {
+  height: 380px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  margin-top: 0.4rem;
+  transition: border-color 0.2s;
+}
+
+#profil-kart.profil-kart-aktiv {
+  border-color: var(--is);
+  box-shadow: 0 0 0 3px rgba(58,122,74,0.15);
+}
+
+.profil-kart-låst {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.profil-kart-kontroller {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.profil-kart-hint {
+  font-size: 0.8rem;
+  color: var(--tekst-dim);
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  min-height: 1.2em;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   #hero { grid-template-columns: 1fr; }
@@ -1540,6 +1880,8 @@ footer span { color: rgba(120,200,130,0.8); }
   .vann-grid  { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
   .form-row   { grid-template-columns: 1fr; }
   .scoreboard-wrapper { grid-template-columns: 1fr; }
+  .nav-bruker-navn { display: none; }
+  .profil-kart-kontroller { flex-direction: column; }
 
   /* Cards */
   .fjell-card-img { height: 110px; }
@@ -1561,9 +1903,10 @@ footer span { color: rgba(120,200,130,0.8); }
   .turleder-hoyre { position: static; }
   #turleder-kart { height: 300px; }
 
-  /* Ruter */
-  .ruter-wrapper { grid-template-columns: 1fr; }
-  .ruter-hoyre { position: static; }
+  /* Profil */
+  .profil-wrapper { grid-template-columns: 1fr; }
+  .profil-hoyre { position: static; }
+  #profil-kart { height: 300px; }
 
   /* Admin */
   .admin-tabs { flex-wrap: wrap; }

@@ -17,6 +17,70 @@
 </head>
 <body>
 
+<!-- ===== LOGIN MODAL ===== -->
+<div id="login-modal" class="login-modal-overlay skjult">
+  <div class="login-boks">
+    <div class="login-logo">
+      <span class="login-logo-ikon">⛰</span>
+      <div class="login-logo-tittel">Lifjell</div>
+      <div class="login-logo-sub">Fjell & Vann Tracker</div>
+    </div>
+
+    <div class="login-tabs">
+      <button class="login-tab aktiv" data-ltab="inn">Logg inn</button>
+      <button class="login-tab" data-ltab="ny">Ny bruker</button>
+    </div>
+
+    <!-- LOGG INN -->
+    <div class="login-panel aktiv" data-lpanel="inn">
+      <div class="login-feil" id="login-feil" style="display:none;"></div>
+      <form id="form-logg-inn">
+        <div class="form-group">
+          <label for="login-navn">👤 Navn</label>
+          <input type="text" id="login-navn" placeholder="Ditt navn" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="login-passord">🔒 Passord</label>
+          <input type="password" id="login-passord" placeholder="Passord" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top:0.5rem;">Logg inn</button>
+      </form>
+    </div>
+
+    <!-- NY BRUKER -->
+    <div class="login-panel" data-lpanel="ny">
+      <div class="login-feil" id="ny-bruker-feil" style="display:none;"></div>
+      <form id="form-ny-bruker">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ny-navn">👤 Navn</label>
+            <input type="text" id="ny-navn" placeholder="Ditt navn" required autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label for="ny-alder">🎂 Alder</label>
+            <input type="number" id="ny-alder" placeholder="25" min="1" max="120">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ny-hytte">🏠 Hytte / Familie-gruppe (valgfritt)</label>
+          <input type="text" id="ny-hytte" placeholder="f.eks. Lifjell hytta">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ny-passord">🔒 Passord</label>
+            <input type="password" id="ny-passord" placeholder="Velg passord" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="ny-passord2">🔒 Gjenta passord</label>
+            <input type="password" id="ny-passord2" placeholder="Gjenta passord" required autocomplete="new-password">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top:0.5rem;">Opprett bruker</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- ===== NAV ===== -->
 <nav>
   <a href="#hero" class="nav-logo">
@@ -32,12 +96,20 @@
     <li><a href="#vann-liste" class="nav-link-item">🌊 Vann</a></li>
     <li><a href="#registrer" class="nav-link-item">✏️ Registrer</a></li>
     <li><a href="#scoreboard" class="nav-link-item">🏆 Scoreboard</a></li>
-    <li><a href="#mine-turer" class="nav-link-item">📖 Mine turer</a></li>
-    <!-- <li><a href="#ruter" class="nav-link-item">🥾 Ruter</a></li> -->
     <li><a href="#turleder" class="nav-link-item">🧭 Turleder</a></li>
     <li><a href="#admin" class="nav-link-item">⚙️ Admin</a></li>
   </ul>
+  <div id="nav-bruker" class="nav-bruker" style="display:none;">
+    <button class="nav-bruker-knapp" onclick="navigerTil('profil')" title="Gå til profil">
+      <div class="nav-bruker-avatar" id="nav-avatar">👤</div>
+      <span class="nav-bruker-navn" id="nav-navn"></span>
+    </button>
+    <button class="nav-logg-ut" onclick="loggUt()">Logg ut</button>
+  </div>
 </nav>
+
+<!-- ===== HOVED-INNHOLD (scrollbart) ===== -->
+<main id="hoved-innhold">
 
 <!-- ===== HERO ===== -->
 <section id="hero">
@@ -141,83 +213,56 @@
   <div class="container">
     <div class="section-header">
       <span class="section-tag">✏️ Registrer</span>
-      <h2 class="section-title">Loggfør din opplevelse</h2>
-      <p class="section-desc">Registrer fjellbesøk eller bad og tjen poeng på scoreboarden.</p>
-    </div>
-
-    <div class="reg-tabs">
-      <button class="reg-tab aktiv" data-tab="fjell">⛰ Fjellbesøk</button>
-      <button class="reg-tab" data-tab="vann">🌊 Bading</button>
+      <h2 class="section-title">Loggfør turen</h2>
+      <p class="section-desc">Legg til alle fjell og vann fra én og samme tur — poengene summeres automatisk.</p>
     </div>
 
     <div class="reg-form-wrapper">
+      <form class="reg-form" id="form-tur">
 
-      <!-- FJELL FORM -->
-      <div class="form-panel aktiv" data-panel="fjell">
-        <form class="reg-form" id="form-fjell">
-          <div class="form-group">
-            <label for="reg-fjell-select">⛰ Hvilket fjell bestiget du?</label>
-            <select id="reg-fjell-select" required>
-              <option value="">— Velg fjell —</option>
-            </select>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-fjell-bruker">👤 Ditt navn</label>
-              <input type="text" id="reg-fjell-bruker" placeholder="Ola Nordmann" required>
-            </div>
-            <div class="form-group">
-              <label for="reg-fjell-dato">📅 Dato</label>
-              <input type="date" id="reg-fjell-dato" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="reg-fjell-notat">📝 Notat (valgfritt)</label>
-            <textarea id="reg-fjell-notat" rows="3" placeholder="Fantastisk utsikt i dag! Klart vær helt til horisonten..."></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-full">⛰ Registrer fjellbesøk</button>
-        </form>
-        <div class="success-msg" id="success-fjell">
-          🎉 Fjellbesøk registrert! Bra jobba — poengene er lagt til!
+        <!-- Bruker-info (autofyllt) -->
+        <div class="reg-tur-info" id="reg-bruker-info">
+          👤 <span id="reg-bruker-navn-vis">—</span>
+          <span id="reg-hytte-vis" style="color:var(--tekst-dim);"></span>
         </div>
-      </div>
 
-      <!-- VANN FORM -->
-      <div class="form-panel" data-panel="vann">
-        <form class="reg-form" id="form-vann">
-          <div class="form-group">
-            <label for="reg-vann-select">🌊 Hvilket vann badet du i?</label>
-            <select id="reg-vann-select" required>
-              <option value="">— Velg vann —</option>
-            </select>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="reg-vann-bruker">👤 Ditt navn</label>
-              <input type="text" id="reg-vann-bruker" placeholder="Ola Nordmann" required>
-            </div>
-            <div class="form-group">
-              <label for="reg-vann-dato">📅 Dato</label>
-              <input type="date" id="reg-vann-dato" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="reg-vann-notat">📝 Notat (valgfritt)</label>
-            <textarea id="reg-vann-notat" rows="3" placeholder="Iskaldt men herlig! Sola skinte og vannet var krystallklart..."></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-vann btn-full">🌊 Registrer bad</button>
-        </form>
-        <div class="success-msg" id="success-vann">
-          🎉 Bading registrert! Poengene er lagt til scoreboarden!
+        <!-- Dato -->
+        <div class="form-group">
+          <label for="reg-tur-dato">📅 Dato</label>
+          <input type="date" id="reg-tur-dato" required>
         </div>
-      </div>
 
+        <!-- Fjell-velger -->
+        <div class="form-group">
+          <label>⛰ Fjell bestiget denne turen</label>
+          <div class="chip-søk-wrapper">
+            <input type="text" id="reg-fjell-søk" placeholder="Søk og legg til fjell..." autocomplete="off">
+            <div class="chip-forslag" id="reg-fjell-forslag"></div>
+          </div>
+          <div class="chip-liste" id="reg-fjell-valgte"></div>
+        </div>
+
+        <!-- Vann-velger -->
+        <div class="form-group">
+          <label>🌊 Vann badet i</label>
+          <div class="chip-søk-wrapper">
+            <input type="text" id="reg-vann-søk" placeholder="Søk og legg til vann..." autocomplete="off">
+            <div class="chip-forslag" id="reg-vann-forslag"></div>
+          </div>
+          <div class="chip-liste" id="reg-vann-valgte"></div>
+        </div>
+
+        <!-- Notat -->
+        <div class="form-group">
+          <label for="reg-tur-notat">📝 Notat (valgfritt)</label>
+          <textarea id="reg-tur-notat" rows="3" placeholder="Fantastisk dag på fjellet! Klart vær og klar sikt..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">✏️ Loggfør tur</button>
+      </form>
+      <div class="success-msg" id="success-tur">
+        🎉 Tur registrert! Poengene er lagt til.
+      </div>
     </div>
   </div>
 </section>
@@ -249,53 +294,19 @@
           <li class="tom-melding">Ingen bad registrert ennå.</li>
         </ul>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- ===== MINE TURER ===== -->
-<section id="mine-turer">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-tag">📖 Logg</span>
-      <h2 class="section-title">Alle registrerte turer</h2>
-      <p class="section-desc">Komplett historikk over bestigninger og bad.</p>
-    </div>
-
-    <div class="mine-logger" id="mine-turer-liste">
-    </div>
-  </div>
-</section>
-
-<!-- ===== RUTER FRA UT.NO ===== -->
-<section id="ruter" style="display:none">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-tag">🥾 Ruter</span>
-      <h2 class="section-title">Turruter i Lifjell-området</h2>
-      <p class="section-desc">GPS-ruter hentet direkte fra <strong>ut.no</strong> / Nasjonal Turbase.</p>
-    </div>
-
-    <div class="ruter-wrapper">
-
-      <!-- VENSTRE: liste -->
-      <div class="ruter-venstre">
-        <div id="ruter-liste">
-          <button class="btn btn-primary" onclick="hentRuter()" id="hent-ruter-btn" style="width:100%;justify-content:center;">
-            Hent ruter fra ut.no
-          </button>
+      <div class="scoreboard-panel hytte-panel">
+        <div class="panel-header">
+          🏠 Hytte-kamp
         </div>
+        <ul class="scoreboard-list" id="hytte-scoreboard">
+          <li class="tom-melding">Ingen hytter registrert ennå.</li>
+        </ul>
       </div>
-
-      <!-- HØYRE: kart -->
-      <div class="ruter-hoyre">
-        <div id="ruter-kart"></div>
-        <div id="ruter-kart-info" style="display:none;" class="ruter-kart-info"></div>
-      </div>
-
     </div>
   </div>
 </section>
+
 
 <!-- ===== TURLEDER ===== -->
 <section id="turleder">
@@ -339,6 +350,105 @@
       </div>
 
     </div>
+  </div>
+</section>
+
+</main><!-- /hoved-innhold -->
+
+<!-- ===== PROFIL ===== -->
+<section id="profil">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">👤 Profil</span>
+      <h2 class="section-title">Min profil</h2>
+    </div>
+
+    <div class="profil-panel-tabs">
+      <button class="profil-panel-tab aktiv" data-ptab="info" onclick="byttProfilFane('info')">👤 Profil</button>
+      <button class="profil-panel-tab" data-ptab="turer" onclick="byttProfilFane('turer')">📖 Mine turer</button>
+    </div>
+
+    <!-- PROFIL-INFO -->
+    <div class="profil-panel aktiv" data-ppanel="info">
+    <div class="profil-wrapper">
+
+      <!-- VENSTRE: Skjema -->
+      <div class="profil-venstre">
+
+        <!-- Profilbilde -->
+        <div class="profil-bilde-seksjon">
+          <div class="profil-bilde-ytre" id="profil-bilde-container">
+            <span class="profil-bilde-placeholder">👤</span>
+          </div>
+          <label class="btn btn-secondary profil-bilde-etikett" for="profil-bilde-input">
+            📷 Last opp bilde
+          </label>
+          <input type="file" id="profil-bilde-input" accept="image/*" style="display:none;">
+        </div>
+
+        <!-- Navn & Alder -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="profil-navn">👤 Navn</label>
+            <input type="text" id="profil-navn" placeholder="Ditt navn">
+          </div>
+          <div class="form-group">
+            <label for="profil-alder">🎂 Alder</label>
+            <input type="number" id="profil-alder" placeholder="25" min="1" max="120">
+          </div>
+        </div>
+
+        <!-- Hytte -->
+        <div class="form-group">
+          <label for="profil-hytte">🏠 Hytte / Familie-gruppe</label>
+          <input type="text" id="profil-hytte" placeholder="f.eks. Lifjell hytta">
+        </div>
+
+        <!-- Venner -->
+        <div class="form-group">
+          <label>👥 Venner</label>
+          <div class="venner-input-rad">
+            <input type="text" id="ny-venn-input" placeholder="Vennens navn">
+            <button type="button" class="btn btn-secondary" onclick="leggTilVenn()">+ Legg til</button>
+          </div>
+          <div class="venner-liste" id="venner-liste">
+            <p class="ingen-venner">Ingen venner lagt til ennå.</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-full" onclick="lagreProfil()">
+          💾 Lagre profil
+        </button>
+        <div class="success-msg" id="profil-lagret" style="display:none;">
+          ✓ Profil lagret!
+        </div>
+      </div>
+
+      <!-- HØYRE: Kart for "Her er vi" -->
+      <div class="profil-hoyre">
+        <div class="form-group" style="height:100%;">
+          <label>📍 Hytte / «Her er vi»-lokasjon</label>
+          <p class="profil-kart-hint" id="profil-kart-hint">Klikk «Flytt hytte» for å velge ny posisjon i kartet.</p>
+          <div id="profil-kart" class="profil-kart-låst"></div>
+          <div class="profil-kart-kontroller">
+            <button type="button" id="flytt-hytte-btn" class="btn btn-secondary" onclick="aktiverHytteFlytt()">
+              📍 Flytt hytte
+            </button>
+            <button type="button" id="flytt-hytte-ferdig" class="btn btn-primary" onclick="deaktiverHytteFlytt()" style="display:none;">
+              ✓ Ferdig
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    </div><!-- /profil-panel info -->
+
+    <!-- MINE TURER -->
+    <div class="profil-panel" data-ppanel="turer">
+      <div class="mine-logger" id="mine-turer-liste"></div>
+    </div>
+
   </div>
 </section>
 
