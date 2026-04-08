@@ -87,6 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Login-sjekk: vis modal eller sett opp bruker
   sjekkInnlogging();
+
+  // Scroll-basert avsløringsanimasjon
+  initScrollAvsløring();
 });
 
 // ===== LOCALSTORAGE =====
@@ -509,10 +512,21 @@ function skjulVann() {
 }
 
 // ===== SCOREBOARD =====
+function animerScoreItems(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.score-item').forEach((item, i) => {
+    item.style.animationDelay = `${i * 55}ms`;
+  });
+}
+
 function renderScoreboard() {
   renderFjellScoreboard();
   renderVannScoreboard();
   renderHytteScoreboard();
+  animerScoreItems('fjell-scoreboard');
+  animerScoreItems('vann-scoreboard');
+  animerScoreItems('hytte-scoreboard');
 }
 
 function settScoreboardFilter(dager) {
@@ -740,6 +754,20 @@ function renderMineTurer() {
 }
 
 // ===== HERO STATS =====
+function tellOppStat(el, slutt, varighet = 750) {
+  if (!el) return;
+  const start = parseInt(el.textContent) || 0;
+  if (start === slutt) { el.textContent = slutt; return; }
+  const startTid = performance.now();
+  function tick(nå) {
+    const fremgang = Math.min((nå - startTid) / varighet, 1);
+    const lettet = 1 - Math.pow(1 - fremgang, 4); // ease-out-quart
+    el.textContent = Math.round(start + (slutt - start) * lettet);
+    if (fremgang < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 function oppdaterHeroStats() {
   const bruker = hentAktivBruker();
   const mine = bruker ? state.logger.filter(l => l.bruker === bruker.navn) : [];
@@ -757,13 +785,9 @@ function oppdaterHeroStats() {
   const badedeVann = vannIds.size;
   const totPoeng = mine.reduce((sum, l) => sum + (l.poeng || 0), 0);
 
-  const elFjell = document.getElementById('stat-fjell');
-  const elVann = document.getElementById('stat-vann');
-  const elPoeng = document.getElementById('stat-poeng');
-
-  if (elFjell) elFjell.textContent = besøkteFjell;
-  if (elVann) elVann.textContent = badedeVann;
-  if (elPoeng) elPoeng.textContent = totPoeng;
+  tellOppStat(document.getElementById('stat-fjell'), besøkteFjell);
+  tellOppStat(document.getElementById('stat-vann'), badedeVann);
+  tellOppStat(document.getElementById('stat-poeng'), totPoeng);
 }
 
 // ===== REGISTRERING =====
@@ -821,8 +845,14 @@ function registrerTur(e) {
 function visSuccessMelding(type) {
   const el = document.getElementById(`success-${type}`);
   if (!el) return;
+  el.classList.remove('suksess-animasjon');
+  el.offsetHeight; // reflow for re-trigger
   el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 3000);
+  el.classList.add('suksess-animasjon');
+  setTimeout(() => {
+    el.style.display = 'none';
+    el.classList.remove('suksess-animasjon');
+  }, 3000);
 }
 
 function oppdaterAlt() {
@@ -1653,6 +1683,7 @@ function bindEvents() {
     if (!ok) {
       feil.textContent = 'Feil navn eller passord.';
       feil.style.display = '';
+      rystBoks(document.querySelector('.login-boks'));
     } else {
       feil.style.display = 'none';
     }
@@ -1668,11 +1699,12 @@ function bindEvents() {
     const hytte = document.getElementById('ny-hytte').value.trim();
     const feil = document.getElementById('ny-bruker-feil');
 
-    if (!navn) { feil.textContent = 'Navn er påkrevd.'; feil.style.display = ''; return; }
-    if (passord.length < 4) { feil.textContent = 'Passordet må være minst 4 tegn.'; feil.style.display = ''; return; }
-    if (passord !== passord2) { feil.textContent = 'Passordene stemmer ikke overens.'; feil.style.display = ''; return; }
+    const ristBoks = () => rystBoks(document.querySelector('.login-boks'));
+    if (!navn) { feil.textContent = 'Navn er påkrevd.'; feil.style.display = ''; ristBoks(); return; }
+    if (passord.length < 4) { feil.textContent = 'Passordet må være minst 4 tegn.'; feil.style.display = ''; ristBoks(); return; }
+    if (passord !== passord2) { feil.textContent = 'Passordene stemmer ikke overens.'; feil.style.display = ''; ristBoks(); return; }
     if (hentBrukere().some(b => b.navn.toLowerCase() === navn.toLowerCase())) {
-      feil.textContent = 'Det finnes allerede en bruker med dette navnet.'; feil.style.display = ''; return;
+      feil.textContent = 'Det finnes allerede en bruker med dette navnet.'; feil.style.display = ''; ristBoks(); return;
     }
     feil.style.display = 'none';
     opprettBruker(navn, passord, alder, hytte);
@@ -1726,7 +1758,8 @@ function bindEvents() {
       navigerTil(href);
       // Lukk hamburger-meny på mobil
       document.getElementById('nav-links')?.classList.remove('open');
-      document.getElementById('nav-hamburger')?.classList.remove('open');
+      const ham = document.getElementById('nav-hamburger');
+      if (ham) { ham.classList.remove('open'); ham.setAttribute('aria-expanded', 'false'); }
     });
   });
 
@@ -1735,8 +1768,9 @@ function bindEvents() {
   const navLinks = document.getElementById('nav-links');
   if (hamburger && navLinks) {
     hamburger.addEventListener('click', () => {
-      hamburger.classList.toggle('open');
+      const isOpen = hamburger.classList.toggle('open');
       navLinks.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', isOpen);
     });
   }
 
@@ -2097,6 +2131,49 @@ function oppdaterProfilKartHint(aktiv) {
     hint.textContent = `Nåværende posisjon: ${profilHerErVi.lat.toFixed(4)}°N, ${profilHerErVi.lng.toFixed(4)}°Ø`;
     hint.style.color = '';
   }
+}
+
+// ===== ANIMASJONSHJELPERE =====
+
+function rystBoks(el) {
+  if (!el) return;
+  el.classList.remove('form-shake');
+  el.offsetHeight; // reflow
+  el.classList.add('form-shake');
+  el.addEventListener('animationend', () => el.classList.remove('form-shake'), { once: true });
+}
+
+function initScrollAvsløring() {
+  if (!('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver((oppføringer) => {
+    oppføringer.forEach(o => {
+      if (o.isIntersecting) {
+        o.target.classList.add('synlig');
+        observer.unobserve(o.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+  // Section headers (skip hero)
+  document.querySelectorAll('section:not(#hero) .section-header').forEach((el, i) => {
+    el.classList.add('avslørt');
+    observer.observe(el);
+  });
+
+  // Key content blocks
+  [
+    '.scoreboard-wrapper',
+    '.reg-form-wrapper',
+    '.turleder-wrapper',
+    '.kart-wrapper',
+    '.kart-legend',
+  ].forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.classList.add('avslørt');
+      observer.observe(el);
+    });
+  });
 }
 
 function komprimerBilde(fil, maxPx, callback) {

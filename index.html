@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Lifjell — Fjell & Vann Tracker</title>
   <meta name="description" content="Registrer fjell du har bestiget og vann du har badet i rundt Lifjell og Telemark.">
 
@@ -87,7 +87,7 @@
     <span class="logo-icon">⛰</span>
     Lifjell
   </a>
-  <button class="nav-hamburger" id="nav-hamburger" aria-label="Meny">
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Meny" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
   <ul class="nav-links" id="nav-links">
@@ -600,7 +600,7 @@
 <!-- Edit Modal -->
 <div id="edit-modal" class="modal-overlay" style="display:none">
   <div class="modal">
-    <button class="modal-close" onclick="lukkModal()">×</button>
+    <button class="modal-close" onclick="lukkModal()" aria-label="Lukk">×</button>
     <h2 class="modal-tittel" id="modal-tittel">Rediger</h2>
     <form class="reg-form" id="form-rediger" style="border:none;padding:0;background:transparent;">
       <input type="hidden" id="edit-id">
