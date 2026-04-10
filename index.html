@@ -108,6 +108,30 @@
   </div>
 </nav>
 
+<!-- ===== MOBIL BUNNAV ===== -->
+<nav class="mob-bunnav" id="mob-bunnav" aria-label="Mobilmeny">
+  <a href="#hero" class="mob-bunnav-item" data-mobnav="hero" onclick="navigerTil('hero');return false;">
+    <span class="mob-bunnav-ikon" aria-hidden="true">🏠</span>
+    <span class="mob-bunnav-tekst">Hjem</span>
+  </a>
+  <a href="#fjell-liste" class="mob-bunnav-item" data-mobnav="fjell-liste" onclick="navigerTil('fjell-liste');return false;">
+    <span class="mob-bunnav-ikon" aria-hidden="true">⛰</span>
+    <span class="mob-bunnav-tekst">Fjell</span>
+  </a>
+  <a href="#registrer" class="mob-bunnav-item mob-bunnav-registrer" data-mobnav="registrer" onclick="navigerTil('registrer');return false;">
+    <span class="mob-bunnav-fab" aria-hidden="true">✏️</span>
+    <span class="mob-bunnav-tekst">Registrer</span>
+  </a>
+  <a href="#scoreboard" class="mob-bunnav-item" data-mobnav="scoreboard" onclick="navigerTil('scoreboard');return false;">
+    <span class="mob-bunnav-ikon" aria-hidden="true">🏆</span>
+    <span class="mob-bunnav-tekst">Scoreboard</span>
+  </a>
+  <a href="#kart" class="mob-bunnav-item" data-mobnav="kart" onclick="navigerTil('kart');return false;">
+    <span class="mob-bunnav-ikon" aria-hidden="true">🗺</span>
+    <span class="mob-bunnav-tekst">Kart</span>
+  </a>
+</nav>
+
 <!-- ===== HOVED-INNHOLD (scrollbart) ===== -->
 <main id="hoved-innhold">
 
@@ -284,8 +308,14 @@
       <button class="tidsfilter-btn" data-dager="365" onclick="settScoreboardFilter('365')">1 år</button>
     </div>
 
+    <div class="mob-scoreboard-tabs" id="mob-scoreboard-tabs">
+      <button class="mob-score-tab aktiv" onclick="byttMobScoreboard('mob-panel-fjell', this)">🏔 Fjell</button>
+      <button class="mob-score-tab" onclick="byttMobScoreboard('mob-panel-vann', this)">🌊 Vann</button>
+      <button class="mob-score-tab" onclick="byttMobScoreboard('mob-panel-hytte', this)">🏠 Hytte</button>
+    </div>
+
     <div class="scoreboard-wrapper">
-      <div class="scoreboard-panel">
+      <div class="scoreboard-panel mob-aktiv" id="mob-panel-fjell">
         <div class="panel-header">
           🏔 Fjellbestigere
         </div>
@@ -294,7 +324,7 @@
         </ul>
       </div>
 
-      <div class="scoreboard-panel">
+      <div class="scoreboard-panel" id="mob-panel-vann">
         <div class="panel-header vann-header">
           🌊 Badere
         </div>
@@ -303,7 +333,7 @@
         </ul>
       </div>
 
-      <div class="scoreboard-panel hytte-panel">
+      <div class="scoreboard-panel hytte-panel" id="mob-panel-hytte">
         <div class="panel-header">
           🏠 Hytte-kamp
         </div>

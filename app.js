@@ -53,6 +53,8 @@ function navigerTil(id) {
     a.classList.toggle('aktiv', a.getAttribute('href') === '#' + seksjonId);
   });
 
+  oppdaterMobBunnav(seksjonId);
+
   // Fiks kartstørrelser etter visning
   setTimeout(() => {
     if (seksjonId === 'kart' && kart) kart.invalidateSize();
@@ -90,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Scroll-basert avsløringsanimasjon
   initScrollAvsløring();
+
+  // Mobil bunnav scroll-spion
+  initScrollSpy();
 });
 
 // ===== LOCALSTORAGE =====
@@ -2174,6 +2179,37 @@ function initScrollAvsløring() {
       observer.observe(el);
     });
   });
+}
+
+// ===== MOBIL BUNNAV =====
+function oppdaterMobBunnav(seksjonId) {
+  document.querySelectorAll('.mob-bunnav-item').forEach(el => {
+    el.classList.toggle('aktiv', el.dataset.mobnav === seksjonId);
+  });
+}
+
+function initScrollSpy() {
+  if (!('IntersectionObserver' in window)) return;
+  const seksjonerIMobNav = ['hero', 'fjell-liste', 'registrer', 'scoreboard', 'kart'];
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) oppdaterMobBunnav(entry.target.id);
+    });
+  }, { rootMargin: '-40% 0px -40% 0px' });
+
+  seksjonerIMobNav.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+}
+
+// ===== SCOREBOARD MOBIL TABS =====
+function byttMobScoreboard(panelId, btn) {
+  document.querySelectorAll('.mob-score-tab').forEach(t => t.classList.remove('aktiv'));
+  btn.classList.add('aktiv');
+  document.querySelectorAll('.scoreboard-panel').forEach(p => p.classList.remove('mob-aktiv'));
+  document.getElementById(panelId)?.classList.add('mob-aktiv');
 }
 
 function komprimerBilde(fil, maxPx, callback) {

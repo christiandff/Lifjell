@@ -2048,8 +2048,18 @@ footer span { color: rgba(120,200,130,0.8); }
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   #hero { grid-template-columns: 1fr; }
-  .hero-left { padding: 3rem 1.5rem 1rem; order: 2; }
+  .hero-left {
+    padding: 3rem 1.5rem 1rem;
+    order: 2;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   .hero-right { height: 50vw; min-height: 260px; order: 1; }
+  .hero-subtitle { max-width: 100%; }
+  .hero-stats { width: 100%; }
+  .hero-cta { justify-content: center; }
 }
 
 @media (max-width: 1024px) {
@@ -2084,15 +2094,18 @@ footer span { color: rgba(120,200,130,0.8); }
   }
 
   /* Sections */
-  section { padding: var(--sp-12) var(--sp-4); }
-  #kart, #registrer, #turleder { padding-top: var(--sp-12); padding-bottom: var(--sp-12); }
+  section { padding: var(--sp-8) var(--sp-4); }
+  #kart, #registrer, #turleder { padding-top: var(--sp-8); padding-bottom: var(--sp-8); }
+  .section-header { margin-bottom: var(--sp-8); }
 
-  /* Hero */
-  .hero-left { padding: var(--sp-8) var(--sp-5) var(--sp-4); }
-  .hero-title { font-size: clamp(2.2rem, 8vw, 3rem); letter-spacing: -1px; }
+  /* Hero: no full-screen lock on mobile */
+  #hero { min-height: auto; }
+  .hero-right { height: 38vw; min-height: 175px; max-height: 240px; }
+  .hero-left { padding: var(--sp-5) var(--sp-5) var(--sp-4); }
+  .hero-title { font-size: clamp(2rem, 8vw, 2.8rem); letter-spacing: -1px; }
   .hero-stats { width: 100%; }
-  .hero-stat { padding: 0.85rem 1rem; flex: 1; }
-  .hero-stat .number { font-size: 1.6rem; }
+  .hero-stat { padding: 0.75rem 0.9rem; flex: 1; }
+  .hero-stat .number { font-size: 1.5rem; }
   .hero-stat .label { font-size: 0.65rem; }
   .hero-badge { font-size: 0.68rem; }
 
@@ -2120,6 +2133,7 @@ footer span { color: rgba(120,200,130,0.8); }
 
   /* Forms */
   .reg-form-wrapper { max-width: 100%; }
+  .reg-form { padding: var(--sp-5) var(--sp-4) var(--sp-6); }
   .reg-tabs { flex-wrap: wrap; }
   .reg-tab { flex: 1; text-align: center; font-size: 0.8rem; padding: 8px; }
 
@@ -2148,11 +2162,16 @@ footer span { color: rgba(120,200,130,0.8); }
   #modal-mini-kart { height: 200px; }
 
   /* Turleder waypoints */
-  .waypoint-item { flex-wrap: wrap; gap: 0.4rem; }
-  .waypoint-item select { width: 100%; }
+  .waypoint-row { flex-wrap: wrap; gap: 0.4rem; }
+  .waypoint-row select { width: 100%; }
 
   /* Tur cards */
   .tur-card { padding: 1rem; }
+
+  /* Time filters & profile tabs: expand to full width */
+  .tidsfilter { width: 100%; }
+  .profil-panel-tabs { width: 100%; }
+  .profil-panel-tab { flex: 1; text-align: center; }
 }
 
 @media (max-width: 480px) {
@@ -2170,7 +2189,19 @@ footer span { color: rgba(120,200,130,0.8); }
   .hero-cta .btn { width: 100%; justify-content: center; }
 
   #map { height: 320px; }
-  .hero-badge { font-size: 0.62rem; letter-spacing: 0.4px; }
+
+  /* Hero badge: allow wrapping on tiny screens to prevent overflow */
+  .hero-badge {
+    font-size: 0.62rem;
+    letter-spacing: 0.4px;
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  /* Venner input: stack vertically on small phones */
+  .venner-input-rad { flex-direction: column; }
+  .venner-input-rad .btn { width: 100%; justify-content: center; }
 }
 
 /* ===== SAFE AREA INSETS (notched iPhones, Android cutouts) ===== */
@@ -2298,6 +2329,127 @@ footer span { color: rgba(120,200,130,0.8); }
     margin: var(--sp-4);
     padding: var(--sp-5);
   }
+}
+
+/* ===== MOBIL BUNNAV ===== */
+.mob-bunnav { display: none; }
+.mob-scoreboard-tabs { display: none; }
+
+@media (max-width: 768px) {
+
+  /* Bottom nav bar */
+  .mob-bunnav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(240,242,238,0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    z-index: 950;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.08);
+    align-items: stretch;
+  }
+
+  .mob-bunnav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-decoration: none;
+    color: var(--tekst-dim);
+    padding: 8px 2px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: color 0.15s var(--ease-out-quart);
+    min-height: 52px;
+  }
+
+  .mob-bunnav-item.aktiv { color: var(--is); }
+
+  .mob-bunnav-ikon {
+    font-size: 1.25rem;
+    line-height: 1;
+    display: block;
+  }
+
+  .mob-bunnav-tekst {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    display: block;
+  }
+
+  /* FAB-style Registrer button */
+  .mob-bunnav-registrer { color: var(--tekst-dim); }
+
+  .mob-bunnav-fab {
+    width: 50px;
+    height: 50px;
+    background: var(--is);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 16px rgba(58,122,74,0.42), 0 1px 4px rgba(0,0,0,0.1);
+    margin-top: -20px;
+    margin-bottom: 1px;
+    flex-shrink: 0;
+    transition: transform 0.18s var(--ease-out-quart), box-shadow 0.18s var(--ease-out-quart);
+  }
+
+  .mob-bunnav-registrer:active .mob-bunnav-fab {
+    transform: scale(0.93);
+    box-shadow: 0 2px 8px rgba(58,122,74,0.3);
+  }
+
+  .mob-bunnav-registrer.aktiv .mob-bunnav-fab {
+    background: var(--is-dim);
+  }
+
+  /* Compensate for bottom nav height */
+  body { padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Scoreboard mobile tabs */
+  .mob-scoreboard-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .mob-score-tab {
+    flex: 1;
+    padding: 11px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--tekst-dim);
+    cursor: pointer;
+    transition: background 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart), border-color 0.15s var(--ease-out-quart);
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mob-score-tab.aktiv {
+    background: var(--is);
+    border-color: var(--is);
+    color: #fff;
+  }
+
+  /* Scoreboard: only show active panel on mobile */
+  .scoreboard-panel:not(.mob-aktiv) { display: none; }
+  .scoreboard-panel.mob-aktiv { display: block; }
 }
 
 @media (prefers-reduced-motion: reduce) {
